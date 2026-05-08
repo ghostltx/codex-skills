@@ -1,6 +1,10 @@
 *
 !.gitignore
 !.gitattributes
+!RH-GPT-IMAGE-2-I2I/
+!RH-GPT-IMAGE-2-I2I/**
+!RH-GPT-IMAGE-2-T2I/
+!RH-GPT-IMAGE-2-T2I/**
 !amazon-batch-imagegen/
 !amazon-batch-imagegen/**
 !amazon-plus-1.0/
