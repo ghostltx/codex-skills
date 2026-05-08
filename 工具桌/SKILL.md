@@ -49,6 +49,8 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - Sink area in inches: approximately 13.0 x 14.0 in.
 - Internal vertical spacing in inches: approximately 19.5 in.
 - If showing lower frame dimensions separately, include 38.0 cm as the lower frame/body depth.
+- Product-specific human-scale anchor for lifestyle images: the water-sink model countertop height is 81.6 cm / 32.1 in and should visually align with an adult's buttock/hip line. It should not sit below the buttock line, and it should not rise to the waist, stomach, ribs, chest, or elbow height. The upper back rail / top crossbar should visually land around the lowest-rib area, not the waist, shoulder, neck, or head. Use the known product dimensions as the scale anchor: countertop 81.6 cm / 32.1 in, total height 114.6 cm / 45.1 in.
+- For image prompts that need product scale, use wording such as: `For this utility table, keep strict realistic product scale: the tabletop is level with the adult buttock/hip line, not below the buttocks and not at waist/rib/chest height; the upper back rail reaches about the lowest-rib area, not shoulder or head height. Do not make the table or upper rail too tall or too short.`
 
 ## 工具桌-基础款
 

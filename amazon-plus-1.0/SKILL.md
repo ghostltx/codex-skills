@@ -9,6 +9,12 @@ description: Unified Amazon US ecommerce product-image generation workflow. Use 
 
 Create Amazon US ecommerce images from one product or same-product reference image set while preserving product identity, dimensions, and marketplace-appropriate conversion logic.
 
+## Core Generation Rule
+
+Local processing is only for preparing line-art constraints, organizing references, light QA, and file management. Do not replace final ecommerce image generation with local compositing, white-background layout boards, plain gradient panels, or PIL/HTML/CSS mockups unless the user explicitly asks for a layout mockup instead of generated images.
+
+For Mode A, use the built-in Image Gen capability for final ecommerce images after local line-art constraints exist. For Mode B, use RH I2I for final ecommerce images. Final secondary images and A+ modules should look like rich Amazon US ecommerce visuals with realistic backgrounds, scenes, product integration, and polished layout hierarchy, not simple cutout collages.
+
 This skill merges the intended capabilities of `amazon-test-imagegen` and `amazon-batch-imagegen` into a new standalone workflow. Do not modify those original skills when using this skill.
 
 ## Required Generation Mode Question
@@ -47,7 +53,7 @@ If dimensions are missing and the image set needs dimension/scale truthfulness, 
 - Expanded or folded size when relevant
 - Key component size, such as sink, drawer, basket, cushion, tabletop, rail, shelf, or hardware size
 
-If the user names a product covered by another skill, load that dimension/specification skill directly and use it as the source of truth. For example, when the user says `工具桌-水槽款` or `工具桌-基础款`, load the `工具桌` skill and use its recorded dimensions/specifications. Do not ask the user for values already present in the corresponding product skill. Do not guess or back-calculate missing measurements when the product skill says a value is unconfirmed.
+If the user names a product covered by another skill, load that dimension/specification skill directly and use it as the source of truth. Do not ask the user for values already present in the corresponding product skill. Do not guess or back-calculate missing measurements when the product skill says a value is unconfirmed.
 
 ## Mandatory Fantui Planning
 
@@ -104,12 +110,23 @@ For every generated image:
 
 Use Mode A when the user chooses `A` or explicitly asks for built-in Image Gen.
 
+Mode A final images must be generated with built-in Image Gen. Use local tools only to create line-art constraints and organize/verify outputs; do not create final Mode A secondary images or A+ modules by pasting product cutouts onto plain local backgrounds.
+
 Generation references:
 
 - Include the original product image(s).
 - Include matching local line-art image(s).
 - Explicitly state that the line art is a structural constraint and the original image is the product appearance reference.
 - For 10-scene Fantui plans, generate each secondary image with the scene-matched original product reference image(s) plus the matching line-art constraint image(s). The selected product photo defines color, material, surface texture, hardware, and visible details; the paired line art constrains outline, structure, component positions, proportions, and angle.
+
+Scene and layout requirements:
+
+- Secondary images should use authentic American lifestyle scenes, backyard, patio, garden, garage, kitchen, home, or outdoor contexts according to the product category.
+- Scene-based secondary images should include realistic people, hands, or family/user interaction when appropriate so the image feels lived-in and relatable. Keep people secondary to the product and do not block key product structure.
+- Prefer natural light, believable materials, real proportions, full-frame composition, and restrained premium composition.
+- Use clean functional breakdowns with restrained English text only when useful, such as dimensions, feature labels, installation callouts, or concise benefit headlines.
+- Avoid crowded domestic marketplace poster layouts. Keep the visual language realistic, premium, minimal, cozy, clean, and natural.
+- Do not replace rich ecommerce/lifestyle image generation with plain white-background layout boards, gradient panels, or local cutout compositions just to satisfy dimensions.
 
 Default output standards:
 
@@ -119,11 +136,17 @@ Default output standards:
 
 Reject or regenerate any Mode A final secondary image whose original generated dimensions are not exactly `1600 x 2000 px`. Do not upscale, pad, or cover-resize secondary images to fake compliance.
 
+If Image Gen cannot return a native `1600 x 2000 px` secondary image, treat that image as a failed draft and regenerate with a stricter prompt. Do not accept a local post-processed substitute that destroys scene richness.
+
 ## Mode B: RunningHub RH I2I
 
 Use Mode B when the user chooses `B` or explicitly asks for RunningHub/RH I2I.
 
 For every RH I2I task, pass both the product source image(s) and the matching local line-art constraint image(s) with `-ImagePaths`. The prompt must say the original image(s) define product color/material/detail, and the line-art image(s) constrain silhouette, structure, proportions, and angle.
+
+Mode B final images should also be rich scene-based ecommerce visuals, not local cutout collages. The RH I2I prompt should explicitly request realistic backgrounds, authentic American lifestyle scenes, natural light, product integration, full-frame composition, concise English ecommerce text when useful, and realistic people/hands/user interaction when appropriate. Use the same scene and layout standards as Mode A unless the user asks for a pure product-only or white-background image.
+
+For RH I2I secondary images, include wording such as `4:5 Amazon US secondary image, realistic backyard/patio/garden/home scene, natural light, believable product scale, realistic person or hands when useful, clean premium ecommerce layout, concise English headline and feature callouts`. For RH I2I A+ modules, include wording such as `wide Amazon A+ banner, full-frame lifestyle or brand atmosphere composition, realistic scene background, clean hierarchy, concise English copy`.
 
 RH I2I supports 1-10 reference images per task. Curate references if there are too many files, but keep at least the primary source image and its matching line art.
 
@@ -176,18 +199,30 @@ For images with text:
 
 Lifestyle and use-scenario images should include believable people by default when appropriate. Add animals only when naturally relevant to the product category and scene; keep them secondary to the product.
 
-For lifestyle, scale, and use-scenario images with people, use fixed human-height anchors to keep product scale realistic against known product dimensions. If the person is male, plan scale using `180 cm` height. If the person is female, plan scale using `165 cm` height. Mention this scale anchor in prompts when the person's full body, torso, arm reach, sitting posture, or standing posture affects perceived product size.
+For lifestyle, scale, and use-scenario images with people, use fixed human-height anchors to keep product scale realistic against known product dimensions. If the person is male, plan scale using `178 cm` height. If the person is female, plan scale using `165 cm` height. Mention this scale anchor in prompts when the person's full body, torso, arm reach, sitting posture, or standing posture affects perceived product size.
+
+## Prompting Guidance
+
+When generating final prompts or images:
+
+- Treat the product reference photos and same-angle line-art constraints as non-negotiable.
+- State the intended image slot before generating: lifestyle, feature, dimension, detail, multi-scene, assembly, brand atmosphere, or A+ module.
+- Use the phrase `native 1600 x 2000 px, 4:5 vertical canvas, full-frame Amazon US secondary image` for every secondary image prompt.
+- Use the phrase `wide Amazon A+ banner canvas, full-frame composition` for every A+ prompt.
+- Say that the original product image defines color, material, finish, hardware, and visible details, while the matching line-art image constrains silhouette, structure, proportions, component positions, and angle.
+- For lifestyle, multi-scene, scale, and assembly images, include a realistic person, hands, or user context whenever it improves realism and conversion value.
+- When dimensions are available, include them in prompts and describe the expected relationship to a realistic person, hand, patio, deck, countertop, floor, or garden setting.
+- For table, bench, workstation, cart, cabinet, shelf, sink, appliance, or tool-surface products, place the person in a natural user position at the main usable/front side of the product unless the scene specifically requires a side or rear view. The person's body should stay outside the product footprint and should not be squeezed behind side extensions, side frames, doors, legs, wheels, braces, posts, drawers, or other structural parts. Hands should reach naturally to the usable surface or control point without blocking the product's key structure.
+- When a product-specific skill provides human-scale anchor rules, copy those scale rules into the final image prompt exactly enough to preserve the product's real-world size. Keep product-specific scale wording in the product skill, and keep general model/person-placement rules in this Amazon workflow.
+- Prefer natural light, believable materials, real proportions, restrained composition, cozy premium backgrounds, and clear product visibility.
+- Use English text only when the image type benefits from text, such as dimensions, feature labels, or installation callouts.
+- Keep text concise and conversion-focused. Do not add fake certifications, awards, warranties, rankings, or unsupported performance claims.
 
 ## Dimension Image Rules
 
 For dimension images, every measurement label must name what is being measured. Do not place a bare number such as `37.4 in` without a label.
 
-For `工具桌-水槽款`:
-
-- The full product length label must read `Overall Length 51.2 in`.
-- It must span the entire product including the right-side extension.
-- `37.4 in` must be labeled `Upper Rail Length 37.4 in`.
-- `37.4 in` must not be visually or textually presented as the overall length.
+When a product-specific skill provides dimension-image cautions, copy those cautions into the dimension prompt exactly enough to avoid mislabeling or mismeasuring the product.
 
 ## Competitor Research
 
