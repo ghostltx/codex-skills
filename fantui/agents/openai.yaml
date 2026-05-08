@@ -1,0 +1,3 @@
+display_name: fantui
+short_description: 根据产品图反推出电商详情页AI图像提示词方案。
+default_prompt: 上传产品图后说“反推”，直接输出电商详情页提示词策划方案。
