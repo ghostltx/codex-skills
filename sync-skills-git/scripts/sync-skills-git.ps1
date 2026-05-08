@@ -40,6 +40,54 @@ function Add-AllowlistEntry {
     }
 }
 
+function Get-WindowsSystemProxy {
+    $settingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+    $settings = Get-ItemProperty -LiteralPath $settingsPath -ErrorAction SilentlyContinue
+    if ($null -eq $settings -or [int]$settings.ProxyEnable -ne 1) {
+        return ""
+    }
+
+    $proxyServer = [string]$settings.ProxyServer
+    if ([string]::IsNullOrWhiteSpace($proxyServer)) {
+        return ""
+    }
+
+    $candidate = $proxyServer
+    if ($proxyServer -match "=") {
+        $entry = ($proxyServer -split ";") |
+            Where-Object { $_ -match "^(https?|all)=" } |
+            Select-Object -First 1
+        if ([string]::IsNullOrWhiteSpace($entry)) {
+            return ""
+        }
+        $candidate = ($entry -split "=", 2)[1]
+    }
+
+    if ($candidate -notmatch "^[a-zA-Z][a-zA-Z0-9+.-]*://") {
+        $candidate = "http://$candidate"
+    }
+
+    return $candidate
+}
+
+function Ensure-GitProxy {
+    $existing = (& git -C $RepoPath config --get http.proxy 2>$null)
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($existing)) {
+        Write-Output "Using existing Git proxy: $existing"
+        return
+    }
+
+    $systemProxy = Get-WindowsSystemProxy
+    if ([string]::IsNullOrWhiteSpace($systemProxy)) {
+        Write-Output "No Git proxy configured and no Windows system proxy detected."
+        return
+    }
+
+    Invoke-Git @("config", "http.proxy", $systemProxy)
+    Invoke-Git @("config", "https.proxy", $systemProxy)
+    Write-Output "Configured Git proxy from Windows system proxy: $systemProxy"
+}
+
 if (-not (Test-Path -LiteralPath (Join-Path $RepoPath ".git") -PathType Container)) {
     throw "Not a Git repository: $RepoPath"
 }
@@ -52,6 +100,8 @@ $origin = (& git -C $RepoPath remote get-url origin 2>$null)
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($origin)) {
     Invoke-Git @("remote", "add", "origin", $RemoteUrl)
 }
+
+Ensure-GitProxy
 
 Invoke-Git @("add", ".")
 
