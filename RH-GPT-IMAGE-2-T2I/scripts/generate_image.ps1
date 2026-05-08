@@ -16,7 +16,11 @@ param(
 
     [string]$WorkflowId = "2047717286877863938",
 
-    [int[]]$PollDelays = @(60, 15, 15)
+    [int[]]$PollDelays = @(60, 30, 30, 60, 60, 60, 60, 60, 60),
+
+    [int]$RequestRetries = 3,
+
+    [int]$RetryDelaySeconds = 8
 )
 
 $ErrorActionPreference = "Stop"
@@ -53,6 +57,25 @@ function Write-Result {
     Write-Host "STATUS=$Status"
     if ($OutputPath) { Write-Host "OUTPUT_PATH=$OutputPath" }
     if ($ImageUrl) { Write-Host "IMAGE_URL=$ImageUrl" }
+}
+
+function Invoke-WithRetry {
+    param(
+        [Parameter(Mandatory = $true)][scriptblock]$Operation,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+
+    for ($attempt = 1; $attempt -le $RequestRetries; $attempt++) {
+        try {
+            return & $Operation
+        } catch {
+            if ($attempt -ge $RequestRetries) {
+                throw
+            }
+            Write-Warning "$Label failed on attempt $attempt/$RequestRetries`: $_"
+            Start-Sleep -Seconds $RetryDelaySeconds
+        }
+    }
 }
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
@@ -98,14 +121,30 @@ $createBody = @{
     )
 } | ConvertTo-Json -Depth 10
 
-try {
-    $createResponse = Invoke-RestMethod -Uri "$BaseUrl/task/openapi/create" -Method Post -Headers $jsonHeaders -Body $createBody
-} catch {
-    Write-Error "Create request failed: $_"
-    exit 1
-}
+$createResponse = $null
+for ($attempt = 1; $attempt -le $RequestRetries; $attempt++) {
+    try {
+        $createResponse = Invoke-RestMethod -Uri "$BaseUrl/task/openapi/create" -Method Post -Headers $jsonHeaders -Body $createBody
+    } catch {
+        if ($attempt -ge $RequestRetries) {
+            Write-Error "Create request failed: $_"
+            exit 1
+        }
+        Write-Warning "Create request failed on attempt $attempt/$RequestRetries`: $_"
+        Start-Sleep -Seconds $RetryDelaySeconds
+        continue
+    }
 
-if ($createResponse.code -ne 0) {
+    if ($createResponse.code -eq 0) {
+        break
+    }
+
+    if ($attempt -lt $RequestRetries -and "$($createResponse.msg)" -match "TASK_QUEUE_MAXED|QUEUE|busy|timeout") {
+        Write-Warning "Create task returned $($createResponse.msg) on attempt $attempt/$RequestRetries; retrying."
+        Start-Sleep -Seconds $RetryDelaySeconds
+        continue
+    }
+
     Write-Error "Create task failed: $($createResponse.msg)"
     exit 1
 }
@@ -153,7 +192,9 @@ foreach ($delay in $PollDelays) {
     }
 
     try {
-        Invoke-WebRequest -Uri $imageUrl -OutFile $OutputPath -UseBasicParsing
+        Invoke-WithRetry -Label "Download result" -Operation {
+            Invoke-WebRequest -Uri $imageUrl -OutFile $OutputPath -UseBasicParsing
+        } | Out-Null
     } catch {
         Write-Error "Download failed: $_"
         Write-Result -TaskId $taskId -Status "SUCCESS_DOWNLOAD_FAILED" -ImageUrl $imageUrl

@@ -38,7 +38,12 @@ description_en: RunningHub image-to-image skill that saves generated images to t
 | `-AspectRatio` | `4:5` | 工作流默认画幅比例 |
 | `-Quality` | `high` | 工作流默认清晰度/质量 |
 | `-Resolution` | `2k` | 工作流默认分辨率 |
-| `-PollDelays` | `60,15,15,30,30` | 查询等待节奏，总计 150 秒 |
+| `-PollDelays` | `60,30,30,60,60,60,60,60,60` | 查询等待节奏，总计 480 秒 |
+| `-MaxUploadBytes` | `4194304` | 单张参考图超过该大小时，先在临时目录压缩为上传用 JPG |
+| `-MaxUploadEdge` | `2048` | 上传用 JPG 的最长边上限 |
+| `-JpegQuality` | `90` | 上传用 JPG 质量 |
+| `-RequestRetries` | `3` | 上传、创建任务、下载结果遇到网络 EOF/断连时的重试次数 |
+| `-RetryDelaySeconds` | `8` | 网络重试和队列重试的等待秒数 |
 | `-DisableTempCopies` | 关闭 | 默认先复制临时参考图再上传；只有调试时才关闭 |
 
 成功输出包含：
@@ -62,11 +67,13 @@ IMAGE_URL=...
 - 用户给出产品图并要求“广告图/亚马逊图/英文输出”时，自行分析产品功能，写英文电商广告提示词。
 - 如果用户指定文件名或路径，传 `-OutputPath`；脚本会自动创建父目录。
 - 批量生成多张图时，最多同时提交 3 个 RunningHub I2I 任务。3 路并行已实测可用；默认按 3 个一组并行提交，超过 3 张时完成一批再继续下一批。
+- 若 3 个任务同时提交时出现 `TASK_QUEUE_MAXED`、创建请求 EOF 或下载 EOF，优先使用 5-10 秒错峰提交同一批 3 个任务。不要立刻判定工作流失败。
 - 多任务并行时，每个任务都调用一次 `scripts/img2img.ps1`，为每张结果设置唯一 `-OutputPath`，不要让多个任务写同一个输出文件。
 - 脚本默认会为输入图片创建本次任务专用临时副本再上传，避免 3 路并行时多个进程同时读取同一源图导致文件占用。
+- 大 PNG 或大尺寸参考图上传前会自动准备临时 JPG 上传副本，默认超过 4MB 时压缩到最长边 2048px、质量 90。原图不会被修改。
 - 上传必须使用 `multipart/form-data` 的 `file` 字段；不要使用裸二进制 body。
 - 任务查询使用 `/openapi/v2/query`，成功图片 URL 在 `results[0].url`。
-- 若 150 秒仍未完成，不要重新提交同一任务；可先扩大 `-PollDelays` 重新运行或临时用任务 ID 查询同一任务。
+- 若轮询结束仍未完成，不要重新提交同一任务；可先扩大 `-PollDelays` 重新运行或临时用任务 ID 查询同一任务。
 
 ## 网络与权限
 

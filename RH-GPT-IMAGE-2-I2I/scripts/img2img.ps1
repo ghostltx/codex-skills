@@ -22,7 +22,17 @@ param(
 
     [string]$Resolution = "2k",
 
-    [int[]]$PollDelays = @(60, 15, 15, 30, 30),
+    [int[]]$PollDelays = @(60, 30, 30, 60, 60, 60, 60, 60, 60),
+
+    [int64]$MaxUploadBytes = 4194304,
+
+    [int]$MaxUploadEdge = 2048,
+
+    [int]$JpegQuality = 90,
+
+    [int]$RequestRetries = 3,
+
+    [int]$RetryDelaySeconds = 8,
 
     [switch]$DisableTempCopies
 )
@@ -59,14 +69,86 @@ function New-TempImageCopies {
     for ($i = 0; $i -lt $Paths.Count; $i++) {
         $sourcePath = $Paths[$i]
         $extension = [IO.Path]::GetExtension($sourcePath)
-        $copyPath = Join-Path $tempRoot ("input_{0:D2}{1}" -f ($i + 1), $extension)
-        Copy-Item -LiteralPath $sourcePath -Destination $copyPath -Force
+        $sourceFile = Get-Item -LiteralPath $sourcePath
+        if ($sourceFile.Length -gt $MaxUploadBytes) {
+            $copyPath = Join-Path $tempRoot ("input_{0:D2}.jpg" -f ($i + 1))
+            Convert-ToUploadJpeg -SourcePath $sourcePath -DestinationPath $copyPath
+            $preparedFile = Get-Item -LiteralPath $copyPath
+            $sizeMb = [math]::Round(($preparedFile.Length / 1MB), 2)
+            Write-Host "PreparedUpload: $sourcePath -> $copyPath ($sizeMb MB)"
+        } else {
+            $copyPath = Join-Path $tempRoot ("input_{0:D2}{1}" -f ($i + 1), $extension)
+            Copy-Item -LiteralPath $sourcePath -Destination $copyPath -Force
+        }
         $copies += $copyPath
     }
 
     return @{
         Root = $tempRoot
         Paths = $copies
+    }
+}
+
+function Convert-ToUploadJpeg {
+    param(
+        [Parameter(Mandatory = $true)][string]$SourcePath,
+        [Parameter(Mandatory = $true)][string]$DestinationPath
+    )
+
+    Add-Type -AssemblyName System.Drawing
+    $image = $null
+    $bitmap = $null
+    $graphics = $null
+    $encoderParams = $null
+
+    try {
+        $image = [System.Drawing.Image]::FromFile($SourcePath)
+        $longEdge = [Math]::Max($image.Width, $image.Height)
+        $scale = [Math]::Min(1.0, [double]$MaxUploadEdge / [double]$longEdge)
+        $width = [Math]::Max(1, [int][Math]::Round($image.Width * $scale))
+        $height = [Math]::Max(1, [int][Math]::Round($image.Height * $scale))
+
+        $bitmap = New-Object System.Drawing.Bitmap($width, $height)
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        $graphics.Clear([System.Drawing.Color]::White)
+        $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+        $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+        $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+        $graphics.DrawImage($image, 0, 0, $width, $height)
+
+        $jpegCodec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() |
+            Where-Object { $_.MimeType -eq "image/jpeg" } |
+            Select-Object -First 1
+        $encoderParams = New-Object System.Drawing.Imaging.EncoderParameters(1)
+        $encoderParams.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter(
+            [System.Drawing.Imaging.Encoder]::Quality,
+            [int64]$JpegQuality
+        )
+        $bitmap.Save($DestinationPath, $jpegCodec, $encoderParams)
+    } finally {
+        if ($encoderParams) { $encoderParams.Dispose() }
+        if ($graphics) { $graphics.Dispose() }
+        if ($bitmap) { $bitmap.Dispose() }
+        if ($image) { $image.Dispose() }
+    }
+}
+
+function Invoke-WithRetry {
+    param(
+        [Parameter(Mandatory = $true)][scriptblock]$Operation,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+
+    for ($attempt = 1; $attempt -le $RequestRetries; $attempt++) {
+        try {
+            return & $Operation
+        } catch {
+            if ($attempt -ge $RequestRetries) {
+                throw
+            }
+            Write-Warning "$Label failed on attempt $attempt/$RequestRetries`: $_"
+            Start-Sleep -Seconds $RetryDelaySeconds
+        }
     }
 }
 
@@ -160,11 +242,13 @@ if (-not $DisableTempCopies) {
 $inputImageUrls = @()
 foreach ($path in $uploadImagePaths) {
     try {
-        $uploadResponse = Invoke-RestMethod `
-            -Uri "$BaseUrl/openapi/v2/media/upload/binary" `
-            -Method Post `
-            -Headers @{ Authorization = "Bearer $ApiKey" } `
-            -Form @{ file = Get-Item -LiteralPath $path }
+        $uploadResponse = Invoke-WithRetry -Label "Upload $path" -Operation {
+            Invoke-RestMethod `
+                -Uri "$BaseUrl/openapi/v2/media/upload/binary" `
+                -Method Post `
+                -Headers @{ Authorization = "Bearer $ApiKey" } `
+                -Form @{ file = Get-Item -LiteralPath $path }
+        }
     } catch {
         Remove-TempImageCopies -TempCopyInfo $tempCopyInfo
         Write-Error "Upload failed for ${path}: $_"
@@ -227,18 +311,34 @@ $createBody = @{
     nodeInfoList = $nodeInfoList
 } | ConvertTo-Json -Depth 10
 
-try {
-    $createResponse = Invoke-RestMethod `
-        -Uri "$BaseUrl/task/openapi/create" `
-        -Method Post `
-        -Headers @{ "Content-Type" = "application/json" } `
-        -Body $createBody
-} catch {
-    Write-Error "Create request failed: $_"
-    exit 1
-}
+$createResponse = $null
+for ($attempt = 1; $attempt -le $RequestRetries; $attempt++) {
+    try {
+        $createResponse = Invoke-RestMethod `
+            -Uri "$BaseUrl/task/openapi/create" `
+            -Method Post `
+            -Headers @{ "Content-Type" = "application/json" } `
+            -Body $createBody
+    } catch {
+        if ($attempt -ge $RequestRetries) {
+            Write-Error "Create request failed: $_"
+            exit 1
+        }
+        Write-Warning "Create request failed on attempt $attempt/$RequestRetries`: $_"
+        Start-Sleep -Seconds $RetryDelaySeconds
+        continue
+    }
 
-if ($createResponse.code -ne 0) {
+    if ($createResponse.code -eq 0) {
+        break
+    }
+
+    if ($attempt -lt $RequestRetries -and "$($createResponse.msg)" -match "TASK_QUEUE_MAXED|QUEUE|busy|timeout") {
+        Write-Warning "Create task returned $($createResponse.msg) on attempt $attempt/$RequestRetries; retrying."
+        Start-Sleep -Seconds $RetryDelaySeconds
+        continue
+    }
+
     Write-Error "Create task failed: $($createResponse.msg)"
     exit 1
 }
@@ -291,7 +391,9 @@ foreach ($delay in $PollDelays) {
     }
 
     try {
-        Invoke-WebRequest -Uri $resultImageUrl -OutFile $OutputPath -UseBasicParsing
+        Invoke-WithRetry -Label "Download result" -Operation {
+            Invoke-WebRequest -Uri $resultImageUrl -OutFile $OutputPath -UseBasicParsing
+        } | Out-Null
     } catch {
         Write-Error "Download failed: $_"
         Write-Result -TaskId $taskId -Status "SUCCESS_DOWNLOAD_FAILED" -ImageUrl $resultImageUrl
