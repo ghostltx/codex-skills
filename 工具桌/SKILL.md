@@ -14,6 +14,7 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - Upper rail/back strip length: 95.0 cm.
 - Right-side length extension: 35.0 cm.
 - Overall product length: 130.0 cm, calculated as 95.0 cm + 35.0 cm.
+- Critical: overall product length must include the right-side folding board/side board.
 - Lower frame/body depth shown in model: 38.0 cm.
 - Full tabletop width/depth, including the flush folding board: 44.59 cm.
 - Countertop height: 81.6 cm.
@@ -26,6 +27,7 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - Internal vertical spacing shown in model: approximately 49.494 cm.
 - Do not use 95.0 cm alone as the overall product length; in the model screenshot, 95.0 cm labels the upper rail/back strip length.
 - For the water-sink model, total length is 95.0 cm + 35.0 cm = 130.0 cm.
+- The 130.0 cm / 51.2 in overall length is measured from the far left side of the product to the far right edge of the right-side board.
 - Overall product length in inches: 51.2 in.
 - Upper rail/back strip length in inches: 37.4 in.
 - Right-side length extension in inches: 13.8 in.
@@ -67,3 +69,4 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - Treat the tabletop and folding board as flush/aligned. Do not describe 44.59 cm as extra added length.
 - For generated dimension images, do not label 95 cm / 37.4 in or 85 cm / 33.5 in as `Overall Size` by itself.
 - For `工具桌-水槽款`, label the full length as 130 cm / 51.2 in and, when useful, show it as 95 cm + 35 cm.
+- Always include the right-side folding board when drawing or describing total length for `工具桌-水槽款`.
