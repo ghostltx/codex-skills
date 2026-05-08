@@ -11,5 +11,7 @@
 !amazon-plus-1.0/**
 !amazon-test-imagegen/
 !amazon-test-imagegen/**
+!sync-skills-git/
+!sync-skills-git/**
 !工具桌/
 !工具桌/**

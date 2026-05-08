@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sync Skills Git"
+  short_description: "Commit and push the personal Codex skills repository."
+  default_prompt: "Commit and push my Codex skills changes to the configured Git remote."
