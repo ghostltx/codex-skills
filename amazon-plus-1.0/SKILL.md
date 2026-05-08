@@ -1,6 +1,6 @@
 ---
 name: amazon-plus-1.0
-description: Unified Amazon US ecommerce product-image generation workflow. Use when the user provides product photos and asks for Amazon listing images, 测试生图, product main images, secondary images, detail-page images, A+ content, dimension images/尺寸图, 6-image sets, 10-image sets, built-in Image Gen generation, or RunningHub RH-GPT-IMAGE-2-I2I batch generation. Always use Fantui planning and local line-art constraints before generation. Ask the user to choose A = built-in Image Gen or B = RunningHub RH I2I when the generation method is not specified.
+description: Unified Amazon US ecommerce product-image generation workflow. Use when the user provides product photos and asks for Amazon listing images, product main images, secondary images, detail-page images, A+ content, dimension images/尺寸图, 6-image sets, 10-image sets, built-in Image Gen generation, or RunningHub RH-GPT-IMAGE-2-I2I batch generation. Always use Fantui planning and local line-art constraints before generation. Ask the user to choose A = built-in Image Gen or B = RunningHub RH I2I when the generation method is not specified.
 ---
 
 # Amazon Plus 1.0
@@ -35,7 +35,8 @@ Before final image generation, make sure these are known:
 - Usage scenario: required for lifestyle, scale, assembly, or A+ scene planning when not obvious.
 - Product dimensions: required for dimension images, scale images, assembly images, and realistic lifestyle scenes.
 - Generation mode: A or B.
-- Count/layout: use the user's requested count; otherwise default to 10 Amazon images for batch/listing requests, or 6 secondary images plus 5 A+ modules for "测试生图" requests.
+- Count/layout: use the user's requested count; otherwise default to a 10-image Amazon listing set made of 1 user-provided white-background main image plus 9 generated secondary images.
+- Main image source: for 10-image listing sets, treat the user's provided white-background product image as image 1/main image by default. Do not generate the main image unless the user explicitly asks for a new main image.
 
 If dimensions are missing and the image set needs dimension/scale truthfulness, ask the user for them before generation. Ask for any available values:
 
@@ -132,22 +133,21 @@ Use this command shape:
 Batching:
 
 - Submit RH I2I tasks in parallel groups of up to 3.
-- For 10-image sets, generate image 1 if needed, then images 2-10 as `2-4`, `5-7`, `8-10`.
+- For 10-image listing sets, copy the user-provided white-background main image as image 1, then generate only images 2-10 as `2-4`, `5-7`, `8-10`.
 - For 6-image or other custom sets, still use groups of up to 3.
-- Image 1/main image should be `1:1` square and no text.
+- Image 1/main image should be the copied user-provided white-background source image unless the user explicitly requests a generated main image. It should be `1:1` square and no text when generated.
 - Non-main images should usually be `4:5`, `high`, `2k`.
 
 ## Amazon Image Planning
 
 Use the user's requested set structure when provided. Otherwise:
 
-- Batch/listing default: 10 images.
-- "测试生图" default: 6 secondary images plus 5 A+ modules.
-- Main white-background image: generate only when requested or when the 10-image set explicitly includes image 1 as a main image.
+- Batch/listing default: 10 images total, with 1 copied user-provided white-background main image plus 9 generated secondary images.
+- Main white-background image: do not generate by default. Copy the user's provided white-background product image into the final deliverable folder as image 1/main image. Generate a new main image only when the user explicitly requests it.
 
 Suggested 10-image structure:
 
-1. Main image: clean product on pure white background, no text.
+1. Main image: copied from the user's provided white-background product image, no generated changes.
 2. Hero lifestyle: premium usage context with a believable person when appropriate.
 3. Core USP: one clear buyer pain point solved visually.
 4. Feature/structure: callouts, exploded view, or functional detail.
@@ -200,9 +200,18 @@ a-plus-01-brand-banner.jpg
 
 For full sets, keep final deliverables organized with `source/`, `line-art/`, and image-set folders such as `secondary/`, `a-plus/`, or `final/`.
 
+For default 10-image listing sets:
+
+- Create a final folder containing exactly 10 visible listing images.
+- Copy the user-provided white-background main image into that final folder as image 1; do not alter it except for filename normalization unless the user asks for resizing or cleanup.
+- Generate 9 secondary images and place them in the same final folder as images 2-10.
+- Use filenames that preserve listing order, such as `amazon_01_main_user_white.png`, `amazon_02_lifestyle_hero_4x5.png`, through `amazon_10_trust_service_4x5.png`.
+- Ensure the user can open the final folder and see all 10 listing images together: 1 copied source main image plus 9 generated images.
+
 Before final delivery:
 
 - Verify every final image path exists.
+- For default 10-image listing sets, verify the final folder contains 10 listing images total and that image 1 is copied from the user-provided source main image.
 - Report original generated pixel dimensions when available.
 - State which mode was used: A built-in Image Gen or B RunningHub RH-GPT-IMAGE-2-I2I.
 - Mention any known gap, such as text not verified, competitor research unavailable, or dimensions missing.
