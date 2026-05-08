@@ -7,7 +7,7 @@ description: Commit and push the user's personal Codex skills repository. Use wh
 
 ## Default Repository
 
-Operate on `C:\Users\ghost\.codex\skills` unless the user explicitly names another skills repository.
+Operate on `C:\Users\Administrator\.codex\skills` unless the user explicitly names another skills repository.
 
 The expected remote is:
 
@@ -42,17 +42,17 @@ Use `scripts/sync-skills-git.ps1` for the normal path. Pass `-Message` when the 
 Commit and push with an inferred message:
 
 ```powershell
-C:\Users\ghost\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1
+C:\Users\Administrator\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1
 ```
 
 Commit and push with a supplied message:
 
 ```powershell
-C:\Users\ghost\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1 -Message "Update Amazon image skills"
+C:\Users\Administrator\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1 -Message "Update Amazon image skills"
 ```
 
 Include a newly created skill folder in the allowlist:
 
 ```powershell
-C:\Users\ghost\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1 -SkillName "my-new-skill"
+C:\Users\Administrator\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1 -SkillName "my-new-skill"
 ```
