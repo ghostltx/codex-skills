@@ -1,0 +1,11 @@
+*
+!.gitignore
+!.gitattributes
+!amazon-batch-imagegen/
+!amazon-batch-imagegen/**
+!amazon-plus-1.0/
+!amazon-plus-1.0/**
+!amazon-test-imagegen/
+!amazon-test-imagegen/**
+!工具桌/
+!工具桌/**
