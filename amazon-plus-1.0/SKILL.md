@@ -55,23 +55,31 @@ Always invoke or follow `$fantui` before final generation, regardless of whether
 
 Use Fantui output as the creative planning base, then adapt it to Amazon US listing standards and the requested image count.
 
+When Fantui produces a 10-scene plan, treat each scene as an individual generation task. For every scene, choose the most suitable product reference image(s) based on the scene content, product angle, visible feature, and required detail. Upload/use those selected original product image(s) together with their own matching local line-art image(s) for that scene. Do not use one generic reference bundle for all scenes when a more relevant product angle exists.
+
+For each planned image, write a short reference-pair note before generation using exact filenames, such as `Scene 04 uses 0.jpg + 0-01.jpg because this scene shows the tabletop and basin angle.` Keep every source image paired only with its matching line art.
+
 ## Local Line-Art Constraint Workflow
 
 Use local image processing for line-art constraint images before final generation in both Mode A and Mode B. Do not use AI image generation to create line-art constraints.
 
 Preferred local method:
 
-```bash
-python C:\Users\ghost\.codex\skills\amazon-test-imagegen\scripts\local_line_art.py input.jpg output-01.jpg
+```powershell
+python "$env:USERPROFILE\.codex\skills\amazon-plus-1.0\scripts\local_line_art.py" "input.jpg" "input-01.jpg"
 ```
+
+Use `$env:USERPROFILE` instead of hard-coding a Windows username so the command works on the current computer account.
 
 If that script is unavailable, use a local deterministic edge-detection or contour-extraction process with standard image tooling. The line-art step must be derived from the supplied product image file, not hallucinated or redrawn by a generative model.
 
 For each product source image:
 
 1. Create a clean line-art constraint image from the same file.
-2. Save it beside the source image as `{original-file-stem}-01.jpg`.
-3. Pair each source image only with its own matching line-art image.
+2. Save each line-art image in the same folder as its original image as `{original-file-stem}-01.jpg`.
+   - Example: `0.jpg` -> `0-01.jpg`
+   - Example: `front.png` -> `front-01.jpg`
+3. Pair each source image only with its own matching line-art image using the exact filename rule above. If a scene uses `0.jpg`, upload/use `0.jpg` and `0-01.jpg` together. If a scene uses `front.png`, upload/use `front.png` and `front-01.jpg` together.
 4. Do not mix line art from one angle with a different product angle.
 
 Line art must:
@@ -101,6 +109,7 @@ Generation references:
 - Include the original product image(s).
 - Include matching local line-art image(s).
 - Explicitly state that the line art is a structural constraint and the original image is the product appearance reference.
+- For 10-scene Fantui plans, generate each secondary image with the scene-matched original product reference image(s) plus the matching line-art constraint image(s). The selected product photo defines color, material, surface texture, hardware, and visible details; the paired line art constrains outline, structure, component positions, proportions, and angle.
 
 Default output standards:
 
@@ -166,6 +175,8 @@ For images with text:
 - Do not add text to main images.
 
 Lifestyle and use-scenario images should include believable people by default when appropriate. Add animals only when naturally relevant to the product category and scene; keep them secondary to the product.
+
+For lifestyle, scale, and use-scenario images with people, use fixed human-height anchors to keep product scale realistic against known product dimensions. If the person is male, plan scale using `180 cm` height. If the person is female, plan scale using `165 cm` height. Mention this scale anchor in prompts when the person's full body, torso, arm reach, sitting posture, or standing posture affects perceived product size.
 
 ## Dimension Image Rules
 
