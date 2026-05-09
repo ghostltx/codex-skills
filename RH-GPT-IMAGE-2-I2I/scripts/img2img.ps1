@@ -14,13 +14,20 @@ param(
 
     [string]$ApiKey = "12b7c9e5908c4daea92a98983306cb6b",
 
-    [string]$WorkflowId = "2047956784060567554",
+    [string]$WorkflowId = "",
 
+    [ValidateSet("1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9")]
     [string]$AspectRatio = "4:5",
 
-    [string]$Quality = "high",
+    [ValidateSet("", "low", "medium", "high")]
+    [string]$Quality = "",
 
-    [string]$Resolution = "2k",
+    [ValidateSet("1k", "2k", "4k")]
+    [string]$Resolution = "1k",
+
+    [long]$Seed = 0,
+
+    [string]$GenerationNodeId = "",
 
     [int[]]$PollDelays = @(60, 30, 30, 60, 60, 60, 60, 60, 60),
 
@@ -39,6 +46,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 $BaseUrl = "https://www.runninghub.cn"
+$DefaultWorkflowId = "2047956784060567554"
+$StableWorkflowId = "2052988540669177857"
 
 function New-DefaultOutputPath {
     $desktop = [Environment]::GetFolderPath("Desktop")
@@ -216,11 +225,49 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
 
 Ensure-ParentDirectory -Path $OutputPath
 
+$useStableWorkflow = $Resolution -in @("2k", "4k")
+if ([string]::IsNullOrWhiteSpace($WorkflowId)) {
+    if ($useStableWorkflow) {
+        $WorkflowId = $StableWorkflowId
+    } else {
+        $WorkflowId = $DefaultWorkflowId
+    }
+}
+
+if ([string]::IsNullOrWhiteSpace($GenerationNodeId)) {
+    if ($useStableWorkflow) {
+        $GenerationNodeId = "1"
+    } else {
+        $GenerationNodeId = "15"
+    }
+}
+
+$promptNodeId = "10"
+$imageNodeIds = @("2", "5", "6", "7", "8", "11", "9", "12", "14", "13")
+if ($useStableWorkflow) {
+    $promptNodeId = "13"
+    $imageNodeIds = @("3", "4", "5", "6", "7", "9", "10", "11", "12", "8")
+    if ([string]::IsNullOrWhiteSpace($Quality)) {
+        $Quality = "medium"
+    }
+} elseif (-not [string]::IsNullOrWhiteSpace($Quality)) {
+    Write-Warning "Ignoring -Quality for the default 1K I2I workflow; that workflow does not expose a quality field."
+    $Quality = ""
+}
+
 Write-Host "RunningHub I2I"
 Write-Host "ImageCount: $($allImagePaths.Count)"
 foreach ($path in $allImagePaths) {
     Write-Host "ImagePath: $path"
 }
+Write-Host "WorkflowId: $WorkflowId"
+Write-Host "AspectRatio: $AspectRatio"
+Write-Host "Resolution: $Resolution"
+if (-not [string]::IsNullOrWhiteSpace($Quality)) {
+    Write-Host "Quality: $Quality"
+}
+Write-Host "Seed: $Seed"
+Write-Host "GenerationNodeId: $GenerationNodeId"
 Write-Host "OutputPath: $OutputPath"
 
 $uploadImagePaths = $allImagePaths
@@ -273,35 +320,50 @@ foreach ($path in $uploadImagePaths) {
 
 Remove-TempImageCopies -TempCopyInfo $tempCopyInfo
 
-$imageNodeIds = @("2", "5", "6", "7", "8", "9", "11", "12", "14", "13")
 $nodeInfoList = @(
     @{
-        nodeId = "1"
+        nodeId = $GenerationNodeId
         fieldName = "resolution"
         fieldValue = $Resolution
     },
     @{
-        nodeId = "1"
-        fieldName = "quality"
-        fieldValue = $Quality
-    },
-    @{
-        nodeId = "1"
+        nodeId = $GenerationNodeId
         fieldName = "aspectRatio"
         fieldValue = $AspectRatio
     },
     @{
-        nodeId = "10"
+        nodeId = $GenerationNodeId
+        fieldName = "seed"
+        fieldValue = $Seed
+    },
+    @{
+        nodeId = $promptNodeId
         fieldName = "编辑文本"
         fieldValue = $Prompt
     }
 )
+
+if (-not [string]::IsNullOrWhiteSpace($Quality)) {
+    $nodeInfoList += @{
+        nodeId = $GenerationNodeId
+        fieldName = "quality"
+        fieldValue = $Quality
+    }
+}
 
 for ($i = 0; $i -lt $inputImageUrls.Count; $i++) {
     $nodeInfoList += @{
         nodeId = $imageNodeIds[$i]
         fieldName = "image"
         fieldValue = $inputImageUrls[$i]
+    }
+}
+
+for ($i = $inputImageUrls.Count; $i -lt $imageNodeIds.Count; $i++) {
+    $nodeInfoList += @{
+        nodeId = $imageNodeIds[$i]
+        fieldName = "image"
+        fieldValue = ""
     }
 }
 

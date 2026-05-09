@@ -158,7 +158,6 @@ Use this command shape:
   -Prompt "<Amazon ecommerce prompt>" `
   -OutputPath "<output-folder>\amazon_02_lifestyle_hero_4x5.png" `
   -AspectRatio "4:5" `
-  -Quality "high" `
   -Resolution "2k"
 ```
 
@@ -168,7 +167,7 @@ Batching:
 - For 10-image listing sets, copy the user-provided white-background main image as image 1, then generate only images 2-10 as `2-4`, `5-7`, `8-10`.
 - For 6-image or other custom sets, still use groups of up to 3.
 - Image 1/main image should be the copied user-provided white-background source image unless the user explicitly requests a generated main image. It should be `1:1` square and no text when generated.
-- Non-main images should usually be `4:5`, `high`, `2k`.
+- Non-main images should usually be `4:5`, `2k`; this routes RH I2I to the Official Stable workflow, whose default quality is `medium`. Pass `-Quality low|medium|high` only when the user explicitly requests a quality level.
 
 ## Amazon Image Planning
 

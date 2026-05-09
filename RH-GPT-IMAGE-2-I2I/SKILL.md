@@ -35,9 +35,11 @@ description_en: RunningHub image-to-image skill that saves generated images to t
 | `-ImagePath` | 兼容旧参数 | 单张本地图片路径；新任务优先使用 `-ImagePaths` |
 | `-Prompt` | 必填 | 图生图提示词 |
 | `-OutputPath` | 桌面 `runninghub_i2i_时间戳.png` | 自定义保存位置 |
-| `-AspectRatio` | `4:5` | 工作流默认画幅比例 |
-| `-Quality` | `high` | 工作流默认清晰度/质量 |
-| `-Resolution` | `2k` | 工作流默认分辨率 |
+| `-AspectRatio` | `4:5` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` |
+| `-Quality` | 空/`medium` | 默认 1K 工作流不传；`2k`/`4k` Official Stable 工作流支持 `low`, `medium`, `high`，未指定时用 `medium` |
+| `-Resolution` | `1k` | 默认走 1K 工作流；用户明确指定 `2k` 或 `4k` 时走 Official Stable 工作流 |
+| `-Seed` | `0` | 传入生成主节点；`0` 表示沿用工作流默认/随机逻辑 |
+| `-GenerationNodeId` | 自动 | 1K 工作流为 `15`；Official Stable 工作流为 `1` |
 | `-PollDelays` | `60,30,30,60,60,60,60,60,60` | 查询等待节奏，总计 480 秒 |
 | `-MaxUploadBytes` | `4194304` | 单张参考图超过该大小时，先在临时目录压缩为上传用 JPG |
 | `-MaxUploadEdge` | `2048` | 上传用 JPG 的最长边上限 |
@@ -60,10 +62,14 @@ IMAGE_URL=...
 - 默认保存到桌面；用户说“放桌面”时不需要额外复制。
 - 用户只给聊天附件时，若没有可上传路径，先在桌面/图片/下载等常见目录查找匹配图片；能合理确认就直接用本地路径，不能确认再问路径。
 - 支持 1-10 张参考图。多图产品参考时，第 1 张作为主身份参考，后续图片作为角度、细节、包装、尺寸、材质、结构参考。
-- 多图按顺序传入 RunningHub 图片节点：第 1 张 -> `nodeId=2`，第 2 张 -> `nodeId=5`，第 3 张 -> `nodeId=6`，第 4 张 -> `nodeId=7`，第 5 张 -> `nodeId=8`，第 6 张 -> `nodeId=9`，第 7 张 -> `nodeId=11`，第 8 张 -> `nodeId=12`，第 9 张 -> `nodeId=14`，第 10 张 -> `nodeId=13`。字段名均为 `image`。
-- 如果用户提供少于工作流可用图片节点数量，只传入实际提供的图片节点；未提供的图片节点不写入 `nodeInfoList`，保持空/未覆盖。
-- 提示词传入文本节点：`nodeId=10`，字段名为 `编辑文本`。
-- 生成主节点默认参数：`nodeId=1`，`resolution=2k`，`quality=high`，`aspectRatio=4:5`，`seed=0`。
+- 默认分辨率为 `1k`，走 1K I2I 工作流 `workflowId=2047956784060567554`；除非用户明确写 `2k` 或 `4k`，不要自动切到高分工作流。
+- 用户明确写 `2k` 或 `4k` 时，走 Official Stable I2I 工作流 `workflowId=2052988540669177857`，支持 `quality=low|medium|high`；如果用户未指定 quality，默认用 `medium`。
+- 画幅比例支持：`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`。
+- 1K 工作流图片节点顺序：第 1 张 -> `nodeId=2`，第 2 张 -> `nodeId=5`，第 3 张 -> `nodeId=6`，第 4 张 -> `nodeId=7`，第 5 张 -> `nodeId=8`，第 6 张 -> `nodeId=11`，第 7 张 -> `nodeId=9`，第 8 张 -> `nodeId=12`，第 9 张 -> `nodeId=14`，第 10 张 -> `nodeId=13`。字段名均为 `image`。
+- Official Stable 工作流图片节点顺序：第 1 张 -> `nodeId=3`，第 2 张 -> `nodeId=4`，第 3 张 -> `nodeId=5`，第 4 张 -> `nodeId=6`，第 5 张 -> `nodeId=7`，第 6 张 -> `nodeId=9`，第 7 张 -> `nodeId=10`，第 8 张 -> `nodeId=11`，第 9 张 -> `nodeId=12`，第 10 张 -> `nodeId=8`。字段名均为 `image`。
+- 如果用户提供少于工作流可用图片节点数量，实际提供的图片节点传入上传后的图片 URL；未使用的默认 `example.png` 图片节点必须显式传空字符串，避免默认参考图参与生成。
+- 1K 工作流提示词传入文本节点：`nodeId=10`，字段名为 `编辑文本`；生成主节点默认参数：`nodeId=15`，`resolution=1k`，`aspectRatio=4:5`，`seed=0`，不传 `quality`。
+- Official Stable 工作流提示词传入文本节点：`nodeId=13`，字段名为 `编辑文本`；生成主节点默认参数：`nodeId=1`，`resolution=2k/4k`，`quality=medium` 或用户指定值，`aspectRatio=4:5`，`seed=0`。
 - 用户给出产品图并要求“广告图/亚马逊图/英文输出”时，自行分析产品功能，写英文电商广告提示词。
 - 如果用户指定文件名或路径，传 `-OutputPath`；脚本会自动创建父目录。
 - 批量生成多张图时，最多同时提交 3 个 RunningHub I2I 任务。3 路并行已实测可用；默认按 3 个一组并行提交，超过 3 张时完成一批再继续下一批。
@@ -82,10 +88,14 @@ RunningHub 是外部 API。若沙箱内出现 `Authentication failed`、TLS、DN
 ## API 常量
 
 - Base URL: `https://www.runninghub.cn`
-- Workflow ID: `2047956784060567554`
-- Generation node: `nodeId=1`, `resolution=2k`, `quality=high`, `aspectRatio=4:5`, `seed=0`
-- Prompt node: `nodeId=10`, `fieldName=编辑文本`
-- Image nodes: `nodeId=2,5,6,7,8,9,11,12,14,13`, `fieldName=image`
+- Default 1K Workflow ID: `2047956784060567554`
+- Default 1K generation node: `nodeId=15`, `resolution=1k`, `aspectRatio=4:5`, `seed=0`, no `quality`
+- Default 1K prompt node: `nodeId=10`, `fieldName=编辑文本`
+- Default 1K image nodes: `nodeId=2,5,6,7,8,11,9,12,14,13`, `fieldName=image`
+- Official Stable Workflow ID: `2052988540669177857`
+- Official Stable generation node: `nodeId=1`, `resolution=2k|4k`, `quality=low|medium|high`, `aspectRatio=4:5`, `seed=0`
+- Official Stable prompt node: `nodeId=13`, `fieldName=编辑文本`
+- Official Stable image nodes: `nodeId=3,4,5,6,7,9,10,11,12,8`, `fieldName=image`
 - Upload: `POST /openapi/v2/media/upload/binary`
 - Create: `POST /task/openapi/create`
 - Query: `POST /openapi/v2/query`
