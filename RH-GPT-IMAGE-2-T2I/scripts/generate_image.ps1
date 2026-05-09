@@ -5,12 +5,17 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$Prompt,
 
-    [ValidateSet("1:1", "16:9", "9:16", "4:3", "3:4")]
+    [ValidateSet("3:2", "1:1", "2:3", "5:4", "4:5", "16:9", "9:16", "21:9", "3:4", "4:3")]
     [string]$AspectRatio = "1:1",
+
+    [ValidateSet("1k", "2k")]
+    [string]$Resolution = "2k",
 
     [long]$Seed = 0,
 
     [string]$OutputPath = "",
+
+    [switch]$Interactive,
 
     [string]$ApiKey = "12b7c9e5908c4daea92a98983306cb6b",
 
@@ -78,11 +83,52 @@ function Invoke-WithRetry {
     }
 }
 
+function Select-Choice {
+    param(
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][string[]]$Options,
+        [Parameter(Mandatory = $true)][string]$CurrentValue
+    )
+
+    Write-Host ""
+    Write-Host "$Label options:"
+    for ($i = 0; $i -lt $Options.Count; $i++) {
+        $marker = ""
+        if ($Options[$i] -eq $CurrentValue) {
+            $marker = " (default)"
+        }
+        Write-Host ("  {0}. {1}{2}" -f ($i + 1), $Options[$i], $marker)
+    }
+
+    while ($true) {
+        $answer = Read-Host "Choose $Label [Enter = $CurrentValue]"
+        if ([string]::IsNullOrWhiteSpace($answer)) {
+            return $CurrentValue
+        }
+
+        $index = 0
+        if ([int]::TryParse($answer, [ref]$index) -and $index -ge 1 -and $index -le $Options.Count) {
+            return $Options[$index - 1]
+        }
+
+        if ($Options -contains $answer) {
+            return $answer
+        }
+
+        Write-Warning "Invalid choice. Enter a number from 1 to $($Options.Count), or one of: $($Options -join ', ')"
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $OutputPath = New-DefaultOutputPath
 }
 
 Ensure-ParentDirectory -Path $OutputPath
+
+if ($Interactive) {
+    $AspectRatio = Select-Choice -Label "AspectRatio" -Options @("3:2", "1:1", "2:3", "5:4", "4:5", "16:9", "9:16", "21:9", "3:4", "4:3") -CurrentValue $AspectRatio
+    $Resolution = Select-Choice -Label "Resolution" -Options @("1k", "2k") -CurrentValue $Resolution
+}
 
 if ($Seed -eq 0) {
     $Seed = Get-Random -Minimum 10000000 -Maximum 99999999
@@ -96,6 +142,7 @@ $queryHeaders = @{
 
 Write-Host "RunningHub T2I"
 Write-Host "AspectRatio: $AspectRatio"
+Write-Host "Resolution: $Resolution"
 Write-Host "Seed: $Seed"
 Write-Host "OutputPath: $OutputPath"
 
@@ -117,6 +164,11 @@ $createBody = @{
             nodeId = "1"
             fieldName = "seed"
             fieldValue = $Seed
+        },
+        @{
+            nodeId = "1"
+            fieldName = "resolution"
+            fieldValue = $Resolution
         }
     )
 } | ConvertTo-Json -Depth 10
