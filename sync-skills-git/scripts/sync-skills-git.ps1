@@ -1,5 +1,5 @@
 param(
-    [string]$RepoPath = "C:\Users\Administrator\.codex\skills",
+    [string]$RepoPath = (Join-Path $env:USERPROFILE ".codex\skills"),
     [string]$RemoteUrl = "https://github.com/ghostltx/codex-skills.git",
     [string]$Message = "",
     [string[]]$SkillName = @()

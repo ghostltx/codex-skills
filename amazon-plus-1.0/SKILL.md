@@ -19,7 +19,12 @@ This skill merges the intended capabilities of `amazon-test-imagegen` and `amazo
 
 ## Required Generation Mode Question
 
-When the user has not already specified the generation method, ask exactly this one question before final image generation:
+Resolution routing takes priority over the normal generation-mode question:
+
+- If the user's request or prompt explicitly mentions `2K`, `2k`, `4K`, or `4k`, automatically use Mode B / RunningHub RH-GPT-IMAGE-2-I2I. Do not ask the A/B generation-mode question in that case.
+- If the user's request does not mention a resolution, or explicitly mentions only `1K` / `1k`, ask the A/B generation-mode question before final image generation unless the user has already specified the generation method.
+
+When the user has not already specified the generation method and the request does not trigger the 2K/4K auto-routing rule above, ask exactly this one question before final image generation:
 
 ```text
 请选择生图方式：A = 内置 Image Gen；B = RunningHub RH I2I。直接回复 A 或 B。
@@ -140,7 +145,7 @@ If Image Gen cannot return a native `1600 x 2000 px` secondary image, treat that
 
 ## Mode B: RunningHub RH I2I
 
-Use Mode B when the user chooses `B` or explicitly asks for RunningHub/RH I2I.
+Use Mode B when the user chooses `B`, explicitly asks for RunningHub/RH I2I, or explicitly requests `2K`, `2k`, `4K`, or `4k` output anywhere in the prompt. A 2K/4K request is an automatic RH-GPT-IMAGE-2-I2I routing signal and must not trigger an A/B question.
 
 For every RH I2I task, pass both the product source image(s) and the matching local line-art constraint image(s) with `-ImagePaths`. The prompt must say the original image(s) define product color/material/detail, and the line-art image(s) constrain silhouette, structure, proportions, and angle.
 
@@ -166,7 +171,7 @@ Batching:
 - For 10-image listing sets, copy the user-provided white-background main image as image 1, then generate only images 2-10 as `2-4`, `5-7`, `8-10`.
 - For 6-image or other custom sets, still use groups of up to 3.
 - Image 1/main image should be the copied user-provided white-background source image unless the user explicitly requests a generated main image. It should be `1:1` square and no text when generated.
-- Non-main images should usually be `4:5` and omit `-Resolution`, so RH I2I uses its default 1K workflow. Pass `-Resolution 2k|4k` and optional `-Quality low|medium|high` only when the user explicitly requests a higher-resolution output.
+- Non-main images should usually be `4:5` and omit `-Resolution`, so RH I2I uses its default 1K workflow. Pass `-Resolution 2k|4k` and optional `-Quality low|medium|high` when the user explicitly requests a higher-resolution output. If the user only requests `1K` / `1k`, do not auto-select RH; ask whether to use built-in Image Gen or RH I2I unless they already chose one.
 
 ## Amazon Image Planning
 
