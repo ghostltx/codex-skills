@@ -110,6 +110,19 @@ For every generated image:
 - Preserve visible structure, color, material, key proportions, silhouette, distinctive details, hardware placement, and accessories.
 - Do not invent new variants, colors, logos, shapes, buttons, holes, stitching, accessories, packaging, certifications, exact specs, warranties, rankings, or performance claims.
 - If a generated image changes key product details, reject or regenerate it.
+- For structural products such as tables, carts, shelving units, benches, cabinets, racks, folding furniture, sinks, tool stations, or products with visible hardware, product geometry is higher priority than lifestyle richness. If a scene prompt causes the model to redraw shelves, braces, fasteners, wheels, hinges, hooks, panels, seams, labels, or surface openings incorrectly, reject the image rather than accepting it as a creative variation.
+- Do not allow AI to invent or replace brand labels/logos. Preserve a source-visible logo only when it remains accurate; otherwise hide, crop, blur, or omit that region. Reject images with hallucinated third-party brands, misspelled labels, fake badges, or unprovided logos.
+- Check physical plausibility for props and use scenes. Reject impossible interactions such as soil leaking through an intact flowerpot, floating dirt, broken containers, unsupported boards, tools fused into hooks, hands passing through product parts, or props resting on nonexistent shelves.
+
+## Product-Preservation Escalation
+
+Use this stricter workflow when the user identifies product drift, when the product has precise structural details, or when previous generated drafts changed the product:
+
+- Prefer source-product-preserving compositions over full product redraws. Keep the original product render/photo as the structural source of truth and use generation mainly for background, atmosphere, light styling, props, or layout.
+- For RH I2I, use one primary product angle plus its matching line art per task whenever possible. Avoid mixing multiple product angles in one generation if the model might average structures or invent new parts.
+- Keep people, props, and lifestyle complexity secondary until the product body is proven accurate. If exact scale or structure is at risk, use hands-only, partial-user context, or no person.
+- For detail images, use the clearest source detail photo and matching line art only. Do not use a wide multi-angle bundle for hardware close-ups.
+- Treat line art in RH I2I as a soft constraint, not a guarantee. Final QA must decide whether the product is accurate.
 
 ## Mode A: Built-In Image Gen
 
@@ -154,6 +167,13 @@ Mode B final images should also be rich scene-based ecommerce visuals, not local
 For RH I2I secondary images, include wording such as `4:5 Amazon US secondary image, realistic backyard/patio/garden/home scene, natural light, believable product scale, realistic person or hands when useful, clean premium ecommerce layout, concise English headline and feature callouts`. For RH I2I A+ modules, include wording such as `wide Amazon A+ banner, full-frame lifestyle or brand atmosphere composition, realistic scene background, clean hierarchy, concise English copy`.
 
 RH I2I supports 1-10 reference images per task. Curate references if there are too many files, but keep at least the primary source image and its matching line art.
+
+For structure-sensitive products, do not assume RH I2I will obey line art strongly enough. In those cases:
+
+- Use the most relevant single source angle and its exact matching line art rather than a broad multi-angle bundle.
+- Add negative constraints for every likely drift point: no extra shelves, no extra braces, no changed hardware, no invented holes, no fake logos, no altered fasteners, no broken boards, no impossible props.
+- Generate fewer scene elements per image and inspect the product before continuing to the next batch.
+- If two consecutive RH drafts for the same slot change critical product structure, stop using full-scene product redraw for that slot and switch to a source-preserving layout or post-production approach.
 
 Use this command shape:
 
@@ -227,6 +247,12 @@ For dimension images, every measurement label must name what is being measured. 
 
 When a product-specific skill provides dimension-image cautions, copy those cautions into the dimension prompt exactly enough to avoid mislabeling or mismeasuring the product.
 
+Dimension images should label product dimensions only. Do not label a model/person's height unless the user explicitly asks for a human-height comparison. If a person is used for scale, keep their height as an internal prompt anchor only and do not print `Model Height`, `5.4 ft`, `164 cm`, or similar text in the final image.
+
+If the user requests inches, inch-only, Amazon US sizing, or says they only want `inch`, use inch labels only. Do not include centimeters in visible dimension text, A+ modules, or callouts unless the user explicitly asks for dual-unit labels.
+
+For Amazon US dimension images, avoid oversized marketing headings such as `A+ Module 03` inside the image unless the user asks for internal module names. Use buyer-facing labels such as `Dimensions`, `Overall Length`, `Tabletop Depth`, and `Basin Depth`.
+
 ## Competitor Research
 
 When network/browser access is available, search Amazon for same-category products and review about 10 leading or comparable seller image sets. Use the findings to improve the Fantui-based image plan.
@@ -264,5 +290,7 @@ Before final delivery:
 - Report original generated pixel dimensions when available.
 - State which mode was used: A built-in Image Gen or B RunningHub RH-GPT-IMAGE-2-I2I.
 - Mention any known gap, such as text not verified, competitor research unavailable, or dimensions missing.
+- Perform visual QA on every generated image before presenting it as usable. For each product, use the product-specific skill's reject list when available. At minimum check: product structure, hardware count and shape, fastener type, shelves/panels/braces, wheels/legs, holes/openings, logo/label accuracy, visible text spelling, measurement units, human/product scale, impossible props, and whether any scene element rests on nonexistent geometry.
+- If QA finds product drift, mark the image as rejected and regenerate or explain that the image is not suitable. Do not present failed drafts as a completed Amazon-ready set.
 
 Reply in Chinese and keep the final concise.
