@@ -1,4 +1,0 @@
-interface:
-  display_name: "Amazon Test Imagegen"
-  short_description: "Amazon secondary and A+ images with local line-art constraints"
-  default_prompt: "Use $amazon-test-imagegen when I say 测试生图 to prepare Amazon secondary images and 5 A+ modules from product photos, create line-art constraints locally, and preserve exact product details."
