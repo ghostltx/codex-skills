@@ -30,6 +30,7 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - Upper shelf/upper back strip length: 95.0 cm.
 - Upper narrow shelf depth: 7.0 cm.
 - Sink area: approximately 33.0 x 35.5 cm.
+- Stainless-steel basin depth: 10.0 cm / 3.9 in.
 - Stainless basin structure: the metal basin is a plain removable/embedded stainless-steel tub with no drain hole, no drain fitting, no stopper, no faucet, and no plumbing underneath. Do not describe it as a working sink with drainage.
 - Critical basin lock: render the basin as an open stainless-steel container with a smooth solid bottom. Do not add a circular drain, black hole, plug, pipe, hose, faucet, soap dispenser, or water outlet unless the user explicitly provides a different reference.
 - Second/middle shelf placement: the water-sink model has the second shelf only in the left bay, supported by the left vertical post and the middle vertical post. It does not continue across the sink/right extension area.
@@ -47,6 +48,7 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - Countertop height in inches: 32.1 in.
 - Upper shelf depth in inches: 2.8 in.
 - Sink area in inches: approximately 13.0 x 14.0 in.
+- Stainless-steel basin depth in inches: 3.9 in.
 - Internal vertical spacing in inches: approximately 19.5 in.
 - If showing lower frame dimensions separately, include 38.0 cm as the lower frame/body depth.
 - Product-specific human-scale anchor for lifestyle images: the water-sink model countertop height is 81.6 cm / 32.1 in and should visually align with an adult's buttock/hip line. It should not sit below the buttock line, and it should not rise to the waist, stomach, ribs, chest, or elbow height. The upper back rail / top crossbar should visually land around the lowest-rib area, not the waist, shoulder, neck, or head. Use the known product dimensions as the scale anchor: countertop 81.6 cm / 32.1 in, total height 114.6 cm / 45.1 in.
@@ -86,4 +88,4 @@ When the user says `工具桌-基础款`, use the basic model dimensions below.
 - For `工具桌-水槽款`, describe the second shelf as `Left-side middle shelf` or `Second shelf between the left and center supports`, not as a full-width shelf.
 - For image prompts, use wording such as: `The second shelf appears only on the left section, mounted between the left vertical post and the center vertical post; it stops before the sink/right-side area and does not span the full product width.`
 - For `工具桌-水槽款`, describe the metal basin as `Plain stainless-steel basin with no drain` or `Removable stainless-steel tub, no drain hole`, not as a plumbed sink.
-- For image prompts, use wording such as: `The stainless-steel basin is a simple open tub with a smooth solid bottom, no drain hole, no faucet, and no plumbing.`
+- For image prompts, use wording such as: `The stainless-steel basin is a simple open tub with a smooth solid bottom, no drain hole, no faucet, and no plumbing. Basin depth is 3.9 in (10 cm).`
