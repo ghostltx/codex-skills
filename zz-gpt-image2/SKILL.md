@@ -38,12 +38,34 @@ If the API returns `b64_json`, the script saves the file. If it returns a URL, r
 
 ## Size Rules
 
-For `gpt-image-2`, validate requested sizes against these API limits before calling:
+For `gpt-image-2`, validate requested sizes against these official-style API limits before calling:
 
 - Longest edge must be `<= 3840`.
 - Width and height must both be divisible by `16`.
 - Long-edge to short-edge ratio must be `<= 3:1`.
 - Total pixels must be from `655360` through `8294400`.
+
+Common valid sizes:
+
+- `1024x1024`
+- `1536x1024`
+- `1024x1536`
+- `2048x2048`
+- `2048x1152`
+- `3840x2160`
+- `2160x3840`
+- `auto`
+
+Interpret user shorthand as:
+
+- `1K`: `1024x1024` unless the user specifies an aspect ratio.
+- `2K`: use the user's previously requested `2048x2048` unless they specify another aspect ratio.
+- `4K`: use the user's previously requested `3840x2160` for landscape 16:9, or `2160x3840` for portrait 9:16.
+
+Invalid examples:
+
+- `4096x4096`: invalid because the longest edge exceeds `3840`.
+- `3840x3840`: invalid because total pixels exceed the pixel budget.
 
 Known outcomes:
 
@@ -53,8 +75,6 @@ Known outcomes:
 - `3840x2160`: works in async mode and is the largest tested 16:9 4K size.
 - `3840x2160` batch: single-task generation works, but 5 concurrent async tasks failed with backend processing errors; use concurrency `1` or `2` for 4K.
 - `2160x3840`: expected to satisfy the same documented limits for portrait 4K.
-- `4096x4096`: invalid because the longest edge exceeds `3840`.
-- `3840x3840`: invalid because total pixels exceed the pixel budget.
 
 When the user asks for 4K, prefer `3840x2160` for landscape or `2160x3840` for portrait unless they explicitly ask for a square image.
 When the user asks for 2K batch generation, `2048x2048` with 5 concurrent async tasks is a known-good setting.
