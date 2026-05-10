@@ -1,0 +1,4 @@
+interface:
+  display_name: "ZZ gpt-image2"
+  short_description: "Test and generate images through the T8Star gpt-image-2-all API."
+  default_prompt: "Use ZZ-gpt-image2 to test connectivity or generate an image with gpt-image-2-all."
