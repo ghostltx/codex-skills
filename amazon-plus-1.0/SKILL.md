@@ -1,6 +1,6 @@
 ---
 name: amazon-plus-1.0
-description: Unified Amazon US ecommerce product-image generation workflow. Use when the user provides product photos and asks for Amazon listing images, product main images, secondary images, detail-page images, A+ content, dimension images/尺寸图, 6-image sets, 10-image sets, built-in Image Gen generation, or RunningHub RH-GPT-IMAGE-2-I2I batch generation. Always use Fantui planning and local line-art constraints before generation. Ask the user to choose A = built-in Image Gen or B = RunningHub RH I2I when the generation method is not specified.
+description: Unified Amazon US ecommerce product-image generation workflow. Use when the user provides product photos and asks for Amazon listing images, product main images, secondary images, detail-page images, A+ content, dimension images/尺寸图, 6-image sets, 10-image sets, built-in Image Gen generation, RunningHub RH-GPT-IMAGE-2-I2I batch generation, ZZ gpt-image-2 generation, or RunningHub GPT Image 2 Official Stable 4K generation. Always use Fantui planning and local line-art constraints before generation. Ask the user to choose A, B, C, or D when the generation method and resolution routing are not specified.
 ---
 
 # Amazon Plus 1.0
@@ -13,7 +13,7 @@ Create Amazon US ecommerce images from one product or same-product reference ima
 
 Local processing is only for preparing line-art constraints, organizing references, light QA, and file management. Do not replace final ecommerce image generation with local compositing, white-background layout boards, plain gradient panels, or PIL/HTML/CSS mockups unless the user explicitly asks for a layout mockup instead of generated images.
 
-For Mode A, use the built-in Image Gen capability for final ecommerce images after local line-art constraints exist. For Mode B, use RH I2I for final ecommerce images. Final secondary images and A+ modules should look like rich Amazon US ecommerce visuals with realistic backgrounds, scenes, product integration, and polished layout hierarchy, not simple cutout collages.
+For Mode A, use the built-in Image Gen capability for final ecommerce images after local line-art constraints exist. For Mode B, use RH I2I for final ecommerce images. For Mode C, use the `zz-gpt-image2` skill / gpt-image-2 through the T8Star OpenAI-compatible API for final ecommerce images. For Mode D, use the RunningHub GPT Image 2 Image-to-Image Official Stable 4K workflow for final ecommerce images. Final secondary images and A+ modules should look like rich Amazon US ecommerce visuals with realistic backgrounds, scenes, product integration, and polished layout hierarchy, not simple cutout collages.
 
 This skill merges the intended capabilities of `amazon-test-imagegen` and `amazon-batch-imagegen` into a new standalone workflow. Do not modify those original skills when using this skill.
 
@@ -21,21 +21,31 @@ This skill merges the intended capabilities of `amazon-test-imagegen` and `amazo
 
 Resolution routing takes priority over the normal generation-mode question:
 
-- If the user's request or prompt explicitly mentions `2K`, `2k`, `4K`, or `4k`, automatically use Mode B / RunningHub RH-GPT-IMAGE-2-I2I. Do not ask the A/B generation-mode question in that case.
-- If the user's request does not mention a resolution, or explicitly mentions only `1K` / `1k`, ask the A/B generation-mode question before final image generation unless the user has already specified the generation method.
+- If the user explicitly mentions `zz-gpt-image2`, `ZZ gpt-image2`, `gpt-image-2`, or `T8Star`, automatically use Mode C / `zz-gpt-image2`. Do not ask the A, B, C, or D generation-mode question in that case.
+- If the user's request or prompt explicitly mentions `1K` or `1k`, automatically use Mode A / built-in Image Gen. Do not ask the A, B, C, or D generation-mode question in that case.
+- If the user's request or prompt explicitly mentions `2K` or `2k`, automatically use Mode B / RunningHub RH-GPT-IMAGE-2-I2I unless the user explicitly chooses Mode D / Official Stable. Do not ask the A, B, C, or D generation-mode question in that case.
+- If the user's request or prompt explicitly mentions `4K` or `4k`, automatically use Mode D / RunningHub GPT Image 2 Image-to-Image Official Stable 4K workflow. Do not ask the A, B, C, or D generation-mode question in that case.
+- If the user's request does not mention a resolution and does not specify a generation method, ask the A, B, C, or D generation-mode question before final image generation.
 
-When the user has not already specified the generation method and the request does not trigger the 2K/4K auto-routing rule above, ask exactly this one question before final image generation:
+When the user has not already specified the generation method and the request does not trigger the ZZ/1K/2K/4K auto-routing rules above, ask exactly this one question before final image generation:
 
 ```text
-请选择生图方式：A = 内置 Image Gen；B = RunningHub RH I2I。直接回复 A 或 B。
+请选择生图方式：
+A = 内置 Image Gen - (1K-free) Official Stable
+B = RunningHub RH I2I - (2K-0.04/pic)
+C = ZZ gpt-image-2 - (2K-0.04/pic)
+D = RunningHub GPT Image 2 Official Stable - (2K-0.93/pic & 4K-1.37/pic)
+直接回复 A、B、C 或 D。
 ```
 
 Interpretations:
 
 - A: use built-in Image Gen for final ecommerce image generation.
 - B: use RunningHub RH-GPT-IMAGE-2-I2I for final ecommerce image generation.
+- C / ZZ / gpt-image-2: use the `zz-gpt-image2` skill for final ecommerce image generation when explicitly requested.
+- D / 2K / 4K / Official Stable: use the RunningHub GPT Image 2 Image-to-Image Official Stable workflow for final ecommerce image generation. Workflow id: `2052988540669177857`. Local workflow reference file: `C:\Users\Administrator\Desktop\GPT I2I Official Stable_api.json`. Pricing note: `2K = 0.93元/次`, `4K = 1.37元/次`.
 
-Both modes must use local line-art constraints. For Mode B, send the original product image(s) plus the matching local line-art image(s) to RH I2I together as reference inputs.
+All modes must use local line-art constraints. For Mode B, send the original product image(s) plus the matching local line-art image(s) to RH I2I together as reference inputs. For Mode C, include the original product image and matching line-art constraint in the prompt context when reference-image upload is not available, and preserve the same product-fidelity lock and QA rules. For Mode D, send the original product image(s) plus the matching local line-art image(s) to the Official Stable 4K image-to-image workflow as reference inputs whenever the workflow invocation supports multiple reference images.
 
 ## Required Intake
 
@@ -158,7 +168,7 @@ If Image Gen cannot return a native `1600 x 2000 px` secondary image, treat that
 
 ## Mode B: RunningHub RH I2I
 
-Use Mode B when the user chooses `B`, explicitly asks for RunningHub/RH I2I, or explicitly requests `2K`, `2k`, `4K`, or `4k` output anywhere in the prompt. A 2K/4K request is an automatic RH-GPT-IMAGE-2-I2I routing signal and must not trigger an A/B question.
+Use Mode B when the user chooses `B`, explicitly asks for RunningHub/RH I2I, or explicitly requests `2K` or `2k` output anywhere in the prompt. A 2K request is an automatic RH-GPT-IMAGE-2-I2I routing signal and must not trigger an A, B, or C question. Do not treat `4K` / `4k` as an automatic Mode B routing signal in this Amazon workflow.
 
 For every RH I2I task, pass both the product source image(s) and the matching local line-art constraint image(s) with `-ImagePaths`. The prompt must say the original image(s) define product color/material/detail, and the line-art image(s) constrain silhouette, structure, proportions, and angle.
 
@@ -191,7 +201,7 @@ Batching:
 - For 10-image listing sets, copy the user-provided white-background main image as image 1, then generate only images 2-10 as `2-4`, `5-7`, `8-10`.
 - For 6-image or other custom sets, still use groups of up to 3.
 - Image 1/main image should be the copied user-provided white-background source image unless the user explicitly requests a generated main image. It should be `1:1` square and no text when generated.
-- Non-main images should usually be `4:5` and omit `-Resolution`, so RH I2I uses its default 1K workflow. Pass `-Resolution 2k|4k` and optional `-Quality low|medium|high` when the user explicitly requests a higher-resolution output. If the user only requests `1K` / `1k`, do not auto-select RH; ask whether to use built-in Image Gen or RH I2I unless they already chose one.
+- Non-main images should usually be `4:5` and omit `-Resolution`, so RH I2I uses its default workflow. Pass `-Resolution 2k` and optional `-Quality low|medium|high` when the user explicitly requests 2K output. If the user only requests `1K` / `1k`, use Mode A / built-in Image Gen by default.
 
 ## Amazon Image Planning
 
@@ -288,7 +298,7 @@ Before final delivery:
 - Verify every final image path exists.
 - For default 10-image listing sets, verify the final folder contains 10 listing images total and that image 1 is copied from the user-provided source main image.
 - Report original generated pixel dimensions when available.
-- State which mode was used: A built-in Image Gen or B RunningHub RH-GPT-IMAGE-2-I2I.
+- State which mode was used: A built-in Image Gen, B RunningHub RH-GPT-IMAGE-2-I2I, or C zz-gpt-image2.
 - Mention any known gap, such as text not verified, competitor research unavailable, or dimensions missing.
 - Perform visual QA on every generated image before presenting it as usable. For each product, use the product-specific skill's reject list when available. At minimum check: product structure, hardware count and shape, fastener type, shelves/panels/braces, wheels/legs, holes/openings, logo/label accuracy, visible text spelling, measurement units, human/product scale, impossible props, and whether any scene element rests on nonexistent geometry.
 - If QA finds product drift, mark the image as rejected and regenerate or explain that the image is not suitable. Do not present failed drafts as a completed Amazon-ready set.

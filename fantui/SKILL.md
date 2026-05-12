@@ -47,7 +47,22 @@ Then include concise analysis bullets for:
 - 光影逻辑
 - 统一画幅比例
 
-Set one consistent ratio for all screens. Choose `3:4` for vertical ecommerce detail pages by default unless the product clearly needs another format.
+Set one consistent ratio for all screens. Choose `1:1` square ecommerce image pages by default unless the user explicitly requests another format.
+
+After `【品牌与类目深度分析】`, always output a section:
+
+```markdown
+【亚马逊5大点】
+```
+
+Write exactly 5 Amazon US bullet points in English. Each bullet should begin with a concise uppercase selling-point label followed by a hyphen, such as `DURABLE CONSTRUCTION - ...`.
+
+The 5 bullet points must:
+
+- Be based on visible product details, category logic, and user-provided facts.
+- Cover the core purchase decision factors, such as function, material/structure, dimensions or capacity when known, usage scenarios, convenience, assembly, storage, care, or included parts.
+- Avoid unsupported exact specs, fake certifications, warranty promises, ranking claims, medical claims, or absolute phrases such as `best`, `guaranteed`, or `100%`.
+- Use clear Amazon US listing language that can later guide the detail-page image plan.
 
 Before any other output, always write this exact sentence as the first line:
 
@@ -60,6 +75,8 @@ Then output exactly 10 screens under:
 ```markdown
 【10张详情页提示词方案】
 ```
+
+The 10-screen plan should echo and visualize the Amazon 5 bullet points where relevant, so the detail-page images and the listing bullets reinforce the same conversion logic.
 
 Each screen must include:
 
@@ -111,13 +128,15 @@ Write each AI image description as a production-ready prompt:
 - Describe camera angle, composition, lighting, background, materials, scene props, and mood.
 - Include ecommerce-detail-page layout intent, typography placement, and negative space.
 - Keep the same aspect ratio across all screens.
+- Every AI image description must explicitly state: `1:1 square ecommerce image, product silhouette, proportions, and physical volume must exactly match the line-art constraint`.
+- If writing in Chinese, every AI image description must explicitly include this phrase: `1:1方图电商视觉，产品轮廓、比例与体量完全匹配线稿`.
 - Avoid impossible claims, real certifications, or brand names unless visible in the image or provided by the user.
 - Use polished commercial visual language, not generic adjectives.
 
 Use this style:
 
 ```markdown
-AI图像描述词：3:4竖版电商详情页视觉，产品置于画面中心偏上，...
+AI图像描述词：1:1方图电商视觉，产品轮廓、比例与体量完全匹配线稿，产品置于画面中心偏上，...
 ```
 
 ## Constraints
