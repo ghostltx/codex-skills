@@ -1,6 +1,7 @@
 *
 !.gitignore
 !.gitattributes
+!README.md
 !RH-GPT-IMAGE-2-I2I/
 !RH-GPT-IMAGE-2-I2I/**
 !RH-GPT-IMAGE-2-T2I/
