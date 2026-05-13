@@ -27,16 +27,23 @@ Resolution routing takes priority over the normal generation-mode question:
 - If the user's request or prompt explicitly mentions `4K` or `4k`, automatically use Mode D / RunningHub GPT Image 2 Image-to-Image Official Stable 4K workflow. Do not ask the A, B, C, or D generation-mode question in that case.
 - If the user's request does not mention a resolution and does not specify a generation method, ask the A, B, C, or D generation-mode question before final image generation.
 
-When the user has not already specified the generation method and the request does not trigger the ZZ/1K/2K/4K auto-routing rules above, ask exactly this one question before final image generation:
+When the user has not already specified the generation method and the request does not trigger the ZZ/1K/2K/4K auto-routing rules above, ask exactly this one text question before final image generation:
 
 ```text
 请选择生图方式：
-A = 内置 Image Gen - (1K-free) Official Stable
-B = RunningHub RH I2I - (2K-0.04/pic)
-C = ZZ gpt-image-2 - (2K-0.04/pic)
-D = RunningHub GPT Image 2 Official Stable - (2K-0.93/pic & 4K-1.37/pic)
+A: Image Gen - (1K-free) Official Stable
+B: RunningHub RH I2I - (2K-0.04/pic)
+C: ZZ gpt-image-2 - (2K-0.04/pic)
+D: RunningHub GPT Image 2 Official Stable - (2K-0.93/pic & 4K-1.37/pic)
 直接回复 A、B、C 或 D。
 ```
+
+Single-select enforcement:
+
+- This step is single choice only.
+- Accept only one token: `A` or `B` or `C` or `D`.
+- Do not accept multi-select input such as `A+B`, `AB`, `A/B`, or comma-separated choices.
+- If the user's reply is not a valid single choice, ask again with the same question and do not continue to generation.
 
 Interpretations:
 
@@ -51,11 +58,13 @@ All modes must use local line-art constraints. For Mode B, send the original pro
 
 Before final image generation, make sure these are known:
 
-- Product image(s): use attached images or local paths supplied by the user. Multiple same-product angles/details should be treated as one product identity reference set.
+- Product image(s): first try to discover product images in the current working directory. If the current directory contains image files, inspect the filenames and use them as the default product reference set unless the user supplied attachments or explicit paths that override them. If the current directory contains no images and the user has not supplied attachments or paths, ask the user for product images before continuing. Multiple same-product angles/details should be treated as one product identity reference set.
+- Current-folder line-art detection: when scanning the current directory, look for existing line-art files that follow the local rule `{original-file-stem}-01.{jpg|jpeg|png|webp}` next to the source image. Example: `1.png` pairs with `1-01.jpg`, and `front.jpg` pairs with `front-01.jpg`. Treat `*-01` files as candidate line art, not source product photos, when the matching original exists.
+- Existing line-art validation: before reusing a candidate `*-01` file, quickly inspect it visually or with local image heuristics. It should be a white-background black/dark-gray contour drawing derived from the matching source image, preserving the same product angle and structure, with no scene, text, props, labels, dimension marks, decorative styling, or hallucinated details. If it passes, reuse it and do not regenerate that pair. If it fails or is mismatched, regenerate the line-art file from the matching source image.
 - Product identity/category: infer from images only when visually clear; otherwise ask.
 - Usage scenario: required for lifestyle, scale, assembly, or A+ scene planning when not obvious.
 - Product dimensions: required for dimension images, scale images, assembly images, and realistic lifestyle scenes.
-- Generation mode: A or B.
+- Generation mode: A, B, C, or D.
 - Count/layout: use the user's requested count; otherwise default to a 10-image Amazon listing set made of 1 user-provided white-background main image plus 9 generated secondary images.
 - Main image source: for 10-image listing sets, treat the user's provided white-background product image as image 1/main image by default. Do not generate the main image unless the user explicitly asks for a new main image.
 
@@ -96,12 +105,14 @@ If that script is unavailable, use a local deterministic edge-detection or conto
 
 For each product source image:
 
-1. Create a clean line-art constraint image from the same file.
-2. Save each line-art image in the same folder as its original image as `{original-file-stem}-01.jpg`.
+1. First check whether a matching `{original-file-stem}-01.{jpg|jpeg|png|webp}` line-art file already exists in the same folder and passes the existing line-art validation rules above.
+2. If valid line art already exists, reuse it and keep the exact source-to-line-art pairing.
+3. If no valid line art exists, create a clean line-art constraint image from the same file.
+4. Save each generated line-art image in the same folder as its original image as `{original-file-stem}-01.jpg`.
    - Example: `0.jpg` -> `0-01.jpg`
    - Example: `front.png` -> `front-01.jpg`
-3. Pair each source image only with its own matching line-art image using the exact filename rule above. If a scene uses `0.jpg`, upload/use `0.jpg` and `0-01.jpg` together. If a scene uses `front.png`, upload/use `front.png` and `front-01.jpg` together.
-4. Do not mix line art from one angle with a different product angle.
+5. Pair each source image only with its own matching line-art image using the exact filename rule above. If a scene uses `0.jpg`, upload/use `0.jpg` and `0-01.jpg` together. If a scene uses `front.png`, upload/use `front.png` and `front-01.jpg` together.
+6. Do not mix line art from one angle with a different product angle.
 
 Line art must:
 
@@ -284,6 +295,8 @@ a-plus-01-brand-banner.jpg
 ```
 
 For full sets, keep final deliverables organized with `source/`, `line-art/`, and image-set folders such as `secondary/`, `a-plus/`, or `final/`.
+
+For explicit multi-platform stability tests, such as a user asking to generate one set each with A, B, and C, create separate mode folders under one test deliverable folder, such as `mode-a-imagegen/`, `mode-b-rh-i2i/`, and `mode-c-zz-gpt-image2/`. This is a request-specific test workflow only and does not change the default behavior: normally generate with the single chosen or routed mode, and ask the generation-mode question when no mode or resolution route is specified.
 
 For default 10-image listing sets:
 
