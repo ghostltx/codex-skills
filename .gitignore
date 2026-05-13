@@ -18,3 +18,5 @@
 !RH-BANANA-2-I2I/**
 !zz-gpt-image2/
 !zz-gpt-image2/**
+zz-gpt-image2/.env
+zz-gpt-image2/scripts/.env

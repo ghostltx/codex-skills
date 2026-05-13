@@ -10,13 +10,67 @@ param(
   [int]$PollIntervalSec = 10,
   [int]$MaxPollSec = 900,
   [int]$MaxPollErrors = 12,
-  [string]$OutputPath = ".\t8star-test-image.png"
+  [string]$OutputPath = ""
 )
 
 $ErrorActionPreference = "Stop"
 
+function Import-DotEnv {
+  param([Parameter(Mandatory = $true)][string]$Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) {
+    return
+  }
+
+  Get-Content -LiteralPath $Path | ForEach-Object {
+    $line = $_.Trim()
+    if (-not $line -or $line.StartsWith("#") -or $line -notmatch "^\s*([^=]+?)\s*=\s*(.*)\s*$") {
+      return
+    }
+
+    $name = $Matches[1].Trim()
+    $value = $Matches[2].Trim()
+    if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+      $value = $value.Substring(1, $value.Length - 2)
+    }
+
+    if ($name) {
+      Set-Item -Path "Env:$name" -Value $value
+    }
+  }
+}
+
+$skillRoot = Split-Path -Parent $PSScriptRoot
+Import-DotEnv -Path (Join-Path $skillRoot ".env")
+
 if (-not $env:T8STAR_API_KEY) {
   Write-Error "Missing T8STAR_API_KEY. Example: `$env:T8STAR_API_KEY='sk-...'; .\scripts\test-t8star.ps1"
+}
+
+function Get-DefaultOutputPath {
+  $desktop = [Environment]::GetFolderPath("Desktop")
+  if ([string]::IsNullOrWhiteSpace($desktop)) {
+    $desktop = (Get-Location).Path
+  }
+
+  $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+  return (Join-Path $desktop "zz_gpt_image2_$timestamp.png")
+}
+
+function Resolve-OutputPath {
+  param([string]$Path)
+
+  if ([string]::IsNullOrWhiteSpace($Path)) {
+    $Path = Get-DefaultOutputPath
+  }
+
+  $resolved = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+  $outputDir = Split-Path -Parent $resolved
+  if ($outputDir -and -not (Test-Path -LiteralPath $outputDir)) {
+    New-Item -ItemType Directory -Path $outputDir | Out-Null
+  }
+
+  return $resolved
 }
 
 function Test-ImageSize {
@@ -153,16 +207,15 @@ if ($Async) {
 
 $image = $result.data | Select-Object -First 1
 if ($image.b64_json) {
-  $resolvedOutputPath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutputPath)
-  $outputDir = Split-Path -Parent $resolvedOutputPath
-  if ($outputDir -and -not (Test-Path -LiteralPath $outputDir)) {
-    New-Item -ItemType Directory -Path $outputDir | Out-Null
-  }
+  $resolvedOutputPath = Resolve-OutputPath -Path $OutputPath
   [IO.File]::WriteAllBytes($resolvedOutputPath, [Convert]::FromBase64String($image.b64_json))
   Write-Host "OK: image saved to $resolvedOutputPath"
 } elseif ($image.url) {
-  Write-Host "OK: image URL returned:"
+  $resolvedOutputPath = Resolve-OutputPath -Path $OutputPath
+  Invoke-WebRequest -Uri $image.url -OutFile $resolvedOutputPath -UseBasicParsing -TimeoutSec $TimeoutSec
+  Write-Host "OK: image URL returned and downloaded:"
   Write-Host $image.url
+  Write-Host "OK: image saved to $resolvedOutputPath"
 } else {
   Write-Host "Generation response:"
   $result | ConvertTo-Json -Depth 10

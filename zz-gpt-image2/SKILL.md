@@ -34,7 +34,7 @@ $env:T8STAR_API_KEY='sk-...'
 .\scripts\test-t8star.ps1 -Generate -Prompt 'A compact stainless steel outdoor prep table in a bright studio, realistic product photo'
 ```
 
-If the API returns `b64_json`, the script saves the file. If it returns a URL, report that URL to the user.
+If the API returns `b64_json`, the script saves the file. If it returns a URL, download it to `-OutputPath`. When `-OutputPath` is omitted, save to the current user's desktop with a timestamped filename unless the user asks for another location.
 
 ## Size Rules
 
@@ -96,7 +96,7 @@ For batch work, prefer concurrency `5` for 2K and concurrency `1-2` for 4K. Poll
 ## Options
 
 - `-Prompt`: image prompt.
-- `-OutputPath`: local save path for base64 image responses.
+- `-OutputPath`: local save path for base64 image responses and downloaded URL responses. Defaults to desktop `zz_gpt_image2_时间戳.png`.
 - `-Size`: image size request, defaults to `1024x1024`.
 - `-TimeoutSec`: generation request timeout, defaults to `180`.
 - `-Async`: submit async image generation and poll task status.
