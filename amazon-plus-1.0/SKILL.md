@@ -31,9 +31,9 @@ When the user has not already specified the generation method and the request do
 
 ```text
 请选择生图方式：
-A: Image Gen - (1K-free) Official Stable
-B: RunningHub RH I2I - (2K-0.04/pic)
-C: ZZ gpt-image-2 - (2K-0.04/pic)
+A: Image Gen - (1K-free) Official Stable - (Need a plus membership)
+B: RunningHub RH I2I - (2K-0.04/pic , 3-Connection)
+C: ZZ gpt-image-2 - (2K-0.04/pic , 100-Connection)
 D: RunningHub GPT Image 2 Official Stable - (2K-0.93/pic & 4K-1.37/pic)
 直接回复 A、B、C 或 D。
 ```

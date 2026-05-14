@@ -22,8 +22,9 @@ param(
     [ValidateSet("", "low", "medium", "high")]
     [string]$Quality = "",
 
+    # Default is 2k; pass -Resolution 1k only when the lower-resolution workflow is explicitly requested.
     [ValidateSet("1k", "2k", "4k")]
-    [string]$Resolution = "1k",
+    [string]$Resolution = "2k",
 
     [long]$Seed = 0,
 
