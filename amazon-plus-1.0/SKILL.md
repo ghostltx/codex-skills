@@ -65,8 +65,8 @@ Before final image generation, make sure these are known:
 - Usage scenario: required for lifestyle, scale, assembly, or A+ scene planning when not obvious.
 - Product dimensions: required for dimension images, scale images, assembly images, and realistic lifestyle scenes.
 - Generation mode: A, B, C, or D.
-- Count/layout: use the user's requested count; otherwise default to a 10-image Amazon listing set made of 1 user-provided white-background main image plus 9 generated secondary images.
-- Main image source: for 10-image listing sets, treat the user's provided white-background product image as image 1/main image by default. Do not generate the main image unless the user explicitly asks for a new main image.
+- Count/layout: use the user's requested count; otherwise default to a full Amazon visual set made of 9 generated secondary images plus 9 generated A+ modules.
+- Main image source: do not copy or generate a white-background main image by default. Generate or include a main image only when the user explicitly asks for a main image, white-background image, or full listing set that includes image 1.
 
 If dimensions are missing and the image set needs dimension/scale truthfulness, ask the user for them before generation. Ask for any available values:
 
@@ -83,9 +83,9 @@ If the user names a product covered by another skill, load that dimension/specif
 
 Always invoke or follow `$fantui` before final generation, regardless of whether the user wants 6 images, 10 images, secondary images, A+ images, a main image, or dimension images.
 
-Use Fantui output as the creative planning base, then adapt it to Amazon US listing standards and the requested image count.
+Invoke or follow Fantui in its Amazon Plus compatibility mode when using the default full visual set, so the planning output is already organized as 9 Amazon secondary images plus 9 A+ modules. Use Fantui output as the creative planning base, then adapt it to Amazon US listing standards and the requested image count.
 
-When Fantui produces a 10-scene plan, treat each scene as an individual generation task. For every scene, choose the most suitable product reference image(s) based on the scene content, product angle, visible feature, and required detail. Upload/use those selected original product image(s) together with their own matching local line-art image(s) for that scene. Do not use one generic reference bundle for all scenes when a more relevant product angle exists.
+When Fantui produces a 9-secondary plus 9-A+ plan, treat each secondary image and each A+ module as an individual generation task. If Fantui is used standalone and produces a legacy 10-scene plan, adapt it into the requested set structure before generation rather than following the legacy count directly. For every image or module, choose the most suitable product reference image(s) based on the scene content, product angle, visible feature, and required detail. Upload/use those selected original product image(s) together with their own matching local line-art image(s) for that scene. Do not use one generic reference bundle for all scenes when a more relevant product angle exists.
 
 For each planned image, write a short reference-pair note before generation using exact filenames, such as `Scene 04 uses 0.jpg + 0-01.jpg because this scene shows the tabletop and basin angle.` Keep every source image paired only with its matching line art.
 
@@ -156,7 +156,7 @@ Generation references:
 - Include the original product image(s).
 - Include matching local line-art image(s).
 - Explicitly state that the line art is a structural constraint and the original image is the product appearance reference.
-- For 10-scene Fantui plans, generate each secondary image with the scene-matched original product reference image(s) plus the matching line-art constraint image(s). The selected product photo defines color, material, surface texture, hardware, and visible details; the paired line art constrains outline, structure, component positions, proportions, and angle.
+- For default full visual sets, adapt Fantui planning into 9 secondary images and 9 A+ modules. Generate each image or module with the scene-matched original product reference image(s) plus the matching line-art constraint image(s). The selected product photo defines color, material, surface texture, hardware, and visible details; the paired line art constrains outline, structure, component positions, proportions, and angle.
 
 Scene and layout requirements:
 
@@ -209,30 +209,41 @@ Use this command shape:
 Batching:
 
 - Submit RH I2I tasks in parallel groups of up to 3.
-- For 10-image listing sets, copy the user-provided white-background main image as image 1, then generate only images 2-10 as `2-4`, `5-7`, `8-10`.
+- For default full visual sets, generate 9 secondary images in three batches (`secondary 1-3`, `secondary 4-6`, `secondary 7-9`) and 9 A+ modules in three batches (`A+ 1-3`, `A+ 4-6`, `A+ 7-9`).
 - For 6-image or other custom sets, still use groups of up to 3.
-- Image 1/main image should be the copied user-provided white-background source image unless the user explicitly requests a generated main image. It should be `1:1` square and no text when generated.
-- Non-main images should usually be `4:5` and omit `-Resolution`, so RH I2I uses its default workflow. Pass `-Resolution 2k` and optional `-Quality low|medium|high` when the user explicitly requests 2K output. If the user only requests `1K` / `1k`, use Mode A / built-in Image Gen by default.
+- Main image should not be copied or generated by default. If the user explicitly requests a generated main image, it should be `1:1` square and no text.
+- Secondary images should usually be `4:5` and omit `-Resolution`, so RH I2I uses its default workflow. A+ modules should use wide banner aspect ratio such as `16:9` or `21:9` when supported by the selected mode. Pass `-Resolution 2k` and optional `-Quality low|medium|high` when the user explicitly requests 2K output. If the user only requests `1K` / `1k`, use Mode A / built-in Image Gen by default.
 
 ## Amazon Image Planning
 
 Use the user's requested set structure when provided. Otherwise:
 
-- Batch/listing default: 10 images total, with 1 copied user-provided white-background main image plus 9 generated secondary images.
-- Main white-background image: do not generate by default. Copy the user's provided white-background product image into the final deliverable folder as image 1/main image. Generate a new main image only when the user explicitly requests it.
+- Default full visual set: 18 generated images total, with 9 Amazon secondary images plus 9 A+ modules.
+- Main white-background image: do not copy or generate by default. Generate or include a main image only when the user explicitly requests it.
 
-Suggested 10-image structure:
+Suggested default 9 secondary image structure:
 
-1. Main image: copied from the user's provided white-background product image, no generated changes.
-2. Hero lifestyle: premium usage context with a believable person when appropriate.
-3. Core USP: one clear buyer pain point solved visually.
-4. Feature/structure: callouts, exploded view, or functional detail.
-5. Material/craft: macro texture, finish, touch, durability, or workmanship.
-6. Size/scale: dimension or human-context scale visualization using only known dimensions.
-7. Use scenario 1: realistic everyday use.
-8. Use scenario 2: aspirational or gift/lifestyle scene.
-9. Detail macro: strongest visible quality detail.
-10. Trust/service: packaging, included items, care, support, or brand reassurance without fake guarantees.
+1. Hero lifestyle: premium usage context with a believable person when appropriate.
+2. Core USP: one clear buyer pain point solved visually.
+3. Feature/structure: callouts, exploded view, or functional detail.
+4. Material/craft: macro texture, finish, touch, durability, or workmanship.
+5. Size/scale: dimension or human-context scale visualization using only known dimensions.
+6. Use scenario 1: realistic everyday use.
+7. Use scenario 2: aspirational or gift/lifestyle scene.
+8. Detail macro: strongest visible quality detail.
+9. Trust/service: included items, care, support, or brand reassurance without fake guarantees.
+
+Suggested default 9 A+ module structure:
+
+1. Brand/lifestyle banner: wide hero scene that establishes category and product positioning.
+2. Problem/solution banner: show the main buyer pain point being solved.
+3. Feature system banner: visual breakdown of the product's key functional zones.
+4. Material/detail banner: premium texture, finish, hardware, or craftsmanship proof.
+5. Size/use-fit banner: scale, footprint, storage, or space-planning context using known dimensions only.
+6. Scenario/story banner: realistic use environment with product integrated into the buyer's routine.
+7. Comparison/fit banner: show why this product form factor fits the target use case without naming or copying competitors.
+8. Care/included-use banner: show cleaning, storage, maintenance, included parts, or everyday setup only when truthful from visible or user-provided facts.
+9. Closing/trust banner: clean final brand atmosphere, care/use summary, included-use context, or support reassurance without unsupported guarantees.
 
 For images with text:
 
@@ -298,20 +309,21 @@ For full sets, keep final deliverables organized with `source/`, `line-art/`, an
 
 For explicit multi-platform stability tests, such as a user asking to generate one set each with A, B, and C, create separate mode folders under one test deliverable folder, such as `mode-a-imagegen/`, `mode-b-rh-i2i/`, and `mode-c-zz-gpt-image2/`. This is a request-specific test workflow only and does not change the default behavior: normally generate with the single chosen or routed mode, and ask the generation-mode question when no mode or resolution route is specified.
 
-For default 10-image listing sets:
+For default full visual sets:
 
-- Create a final folder containing exactly 10 visible listing images.
-- Copy the user-provided white-background main image into that final folder as image 1; do not alter it except for filename normalization unless the user asks for resizing or cleanup.
-- Generate 9 secondary images and place them in the same final folder as images 2-10.
-- Use filenames that preserve listing order, such as `amazon_01_main_user_white.png`, `amazon_02_lifestyle_hero_4x5.png`, through `amazon_10_trust_service_4x5.png`.
-- Ensure the user can open the final folder and see all 10 listing images together: 1 copied source main image plus 9 generated images.
+- Create one deliverable folder with separate `secondary/` and `a-plus/` folders.
+- Generate 9 secondary images and place them in `secondary/`.
+- Generate 9 A+ modules and place them in `a-plus/`.
+- Do not copy the user-provided white-background source image into the final deliverable by default. Keep source images in `source/` only when useful for organization or QA.
+- Use filenames that preserve set order, such as `secondary_01_lifestyle_hero_4x5.png` through `secondary_09_trust_service_4x5.png`, and `a-plus_01_brand_lifestyle_banner.png` through `a-plus_09_closing_trust_banner.png`.
+- Ensure the user can open the final folder and see 18 generated deliverables organized as 9 secondary images plus 9 A+ modules.
 
 Before final delivery:
 
 - Verify every final image path exists.
-- For default 10-image listing sets, verify the final folder contains 10 listing images total and that image 1 is copied from the user-provided source main image.
+- For default full visual sets, verify the final deliverable contains exactly 9 secondary images and 9 A+ modules, with no default copied white-background main image mixed into the generated deliverables.
 - Report original generated pixel dimensions when available.
-- State which mode was used: A built-in Image Gen, B RunningHub RH-GPT-IMAGE-2-I2I, or C zz-gpt-image2.
+- State which mode was used: A built-in Image Gen, B RunningHub RH-GPT-IMAGE-2-I2I, C zz-gpt-image2, or D RunningHub GPT Image 2 Official Stable.
 - Mention any known gap, such as text not verified, competitor research unavailable, or dimensions missing.
 - Perform visual QA on every generated image before presenting it as usable. For each product, use the product-specific skill's reject list when available. At minimum check: product structure, hardware count and shape, fastener type, shelves/panels/braces, wheels/legs, holes/openings, logo/label accuracy, visible text spelling, measurement units, human/product scale, impossible props, and whether any scene element rests on nonexistent geometry.
 - If QA finds product drift, mark the image as rejected and regenerate or explain that the image is not suitable. Do not present failed drafts as a completed Amazon-ready set.

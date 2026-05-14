@@ -10,7 +10,8 @@ param(
   [int]$PollIntervalSec = 10,
   [int]$MaxPollSec = 900,
   [int]$MaxPollErrors = 12,
-  [string]$OutputPath = ""
+  [string]$OutputPath = "",
+  [string]$ApiKey = "sk-8eqMmG42duTRthbDR3Afa14k09pkvGVhTD5akQog5YrmgqCQ"
 )
 
 $ErrorActionPreference = "Stop"
@@ -43,8 +44,12 @@ function Import-DotEnv {
 $skillRoot = Split-Path -Parent $PSScriptRoot
 Import-DotEnv -Path (Join-Path $skillRoot ".env")
 
-if (-not $env:T8STAR_API_KEY) {
-  Write-Error "Missing T8STAR_API_KEY. Example: `$env:T8STAR_API_KEY='sk-...'; .\scripts\test-t8star.ps1"
+if ([string]::IsNullOrWhiteSpace($ApiKey)) {
+  $ApiKey = $env:T8STAR_API_KEY
+}
+
+if ([string]::IsNullOrWhiteSpace($ApiKey)) {
+  Write-Error "Missing API key. Pass -ApiKey or set `$env:T8STAR_API_KEY."
 }
 
 function Get-DefaultOutputPath {
@@ -101,7 +106,7 @@ function Test-ImageSize {
 }
 
 $headers = @{
-  Authorization = "Bearer $env:T8STAR_API_KEY"
+  Authorization = "Bearer $ApiKey"
 }
 
 if (-not $SkipModelCheck) {

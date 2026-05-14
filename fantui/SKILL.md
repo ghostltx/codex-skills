@@ -32,6 +32,61 @@ Use these in the output, but keep the answer practical and prompt-ready.
 
 Output in Chinese. Avoid small talk and preambles.
 
+## Amazon Plus Compatibility
+
+When this skill is invoked by `amazon-plus-1.0`, or when the user asks for Amazon listing images, secondary images, A+ modules, or a default Amazon visual set, do not use the standalone 10-screen detail-page default. Instead, output an Amazon Plus planning package with:
+
+- 9 Amazon secondary image prompts.
+- 9 Amazon A+ module prompts.
+- Secondary image prompts written for `4:5 Amazon US secondary image`.
+- A+ module prompts written for `wide Amazon A+ banner canvas`.
+- No default white-background main image.
+
+For Amazon Plus compatibility output, start with this exact sentence:
+
+```markdown
+生成该产品9张亚马逊副图和9张A+模块，提示词如下：
+```
+
+Then output these sections:
+
+```markdown
+【品牌与类目深度分析】
+【亚马逊5大点】
+【9张亚马逊副图提示词方案】
+【9张A+模块提示词方案】
+```
+
+The 9 secondary prompts should follow this order:
+
+1. Hero lifestyle
+2. Core USP
+3. Feature/structure
+4. Material/craft
+5. Size/scale
+6. Use scenario 1
+7. Use scenario 2
+8. Detail macro
+9. Trust/service
+
+The 9 A+ module prompts should follow this order:
+
+1. Brand/lifestyle banner
+2. Problem/solution banner
+3. Feature system banner
+4. Material/detail banner
+5. Size/use-fit banner
+6. Scenario/story banner
+7. Comparison/fit banner
+8. Care/included-use banner
+9. Closing/trust banner
+
+Each secondary image prompt must explicitly include: `4:5 Amazon US secondary image, product silhouette, proportions, and physical volume must exactly match the line-art constraint`.
+
+Each A+ module prompt must explicitly include: `wide Amazon A+ banner canvas, product silhouette, proportions, and physical volume must exactly match the line-art constraint`.
+
+Amazon Plus compatibility output may use different ratios for secondary images and A+ modules. Do not force one unified 1:1 ratio in this mode.
+
 Start with:
 
 ```markdown
