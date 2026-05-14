@@ -1,105 +1,77 @@
 ---
 name: RH-GPT-IMAGE-2-I2I
-description: RunningHub 图生图 Skill，通过 GPT Image 2.0 工作流基于 1-10 张本地参考图片生成新图片并默认保存到桌面。支持图生图、图片生成图片、以图生图、风格转换、角色参考、多图产品参考、图片参考，可指定提示词和输出路径。
-description_zh: RunningHub 图生图 Skill，基于本地图片生成并默认放到桌面
-description_en: RunningHub image-to-image skill that saves generated images to the desktop by default
+description: RunningHub image-to-image skill. Use when Codex needs to upload one or more local reference images, send a prompt, create a RunningHub 图生图 / image-to-image workflow task by workflowId, poll task status, and download generated image results. Supports variable image counts, automatic node discovery from RunningHub workflow JSON, manual node overrides, and verified workflow 2047956784060567554 with 1k/2k/4k output.
 ---
 
-# RunningHub 图生图
+# RH-GPT-IMAGE-2-I2I
 
-用 RunningHub GPT Image 2.0 工作流基于 1-10 张本地图片生成新图。默认走 `2k` Official Stable I2I 工作流并下载到当前用户桌面；只有用户明确指定 `1k` 时才切换到低分辨率 1K 工作流，明确指定 `4k` 时走 4K Official Stable 工作流。这个 skill 只有一个执行入口：`scripts/img2img.ps1`。
+Use this skill to submit local images plus a prompt to a RunningHub image-to-image workflow.
 
-## 快速使用
+Use `scripts/submit_i2i.ps1` for explicit workflow submissions. `scripts/img2img.ps1` is the short convenience entrypoint with default workflow `2047956784060567554`.
 
-优先运行 bundled 脚本，不要手写 API 请求：
+## Quick Start
 
-```powershell
-& "C:\Users\ghost\.codex\skills\RH-GPT-IMAGE-2-I2I\scripts\img2img.ps1" `
-  -ImagePaths "C:\path\to\front.png","C:\path\to\side.png" `
-  -Prompt "English or Chinese prompt"
-```
-
-兼容旧单图写法：
+Default verified workflow:
 
 ```powershell
-& "C:\Users\ghost\.codex\skills\RH-GPT-IMAGE-2-I2I\scripts\img2img.ps1" `
-  -ImagePath "C:\path\to\input.png" `
-  -Prompt "English or Chinese prompt"
+& "$env:USERPROFILE\.codex\skills\RH-GPT-IMAGE-2-I2I\scripts\submit_i2i.ps1" `
+  -WorkflowId "2047956784060567554" `
+  -ImagePaths "C:\path\input.png" `
+  -Prompt "Create an ecommerce product image..." `
+  -AspectRatio "1:1"
 ```
 
-常用参数：
+Multiple reference images:
 
-| 参数 | 默认 | 说明 |
+```powershell
+& "$env:USERPROFILE\.codex\skills\RH-GPT-IMAGE-2-I2I\scripts\submit_i2i.ps1" `
+  -WorkflowId "2047956784060567554" `
+  -ImagePaths "C:\path\front.jpg","C:\path\side.jpg","C:\path\detail.jpg" `
+  -Prompt "Use all references to generate a consistent product image" `
+  -OutputPath "$env:USERPROFILE\Desktop\rh_i2i.png"
+```
+
+Common parameters:
+
+| Parameter | Required | Notes |
 | --- | --- | --- |
-| `-ImagePaths` | 必填，或使用 `-ImagePath` | 1-10 张本地图片路径，支持 `.png`, `.jpg`, `.jpeg`, `.webp` |
-| `-ImagePath` | 兼容旧参数 | 单张本地图片路径；新任务优先使用 `-ImagePaths` |
-| `-Prompt` | 必填 | 图生图提示词 |
-| `-OutputPath` | 桌面 `runninghub_i2i_时间戳.png` | 自定义保存位置 |
-| `-AspectRatio` | `4:5` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` |
-| `-Quality` | 空/`medium` | `2k`/`4k` Official Stable 工作流支持 `low`, `medium`, `high`，未指定时用 `medium`；`1k` 工作流不传 |
-| `-Resolution` | `2k` | 默认走 Official Stable 2K 工作流；用户明确指定 `1k` 时走 1K 工作流，明确指定 `4k` 时走 Official Stable 4K 工作流 |
-| `-Seed` | `0` | 传入生成主节点；`0` 表示沿用工作流默认/随机逻辑 |
-| `-GenerationNodeId` | 自动 | 1K 工作流为 `15`；Official Stable 工作流为 `1` |
-| `-PollDelays` | `60,30,30,60,60,60,60,60,60` | 查询等待节奏，总计 480 秒 |
-| `-MaxUploadBytes` | `4194304` | 单张参考图超过该大小时，先在临时目录压缩为上传用 JPG |
-| `-MaxUploadEdge` | `2048` | 上传用 JPG 的最长边上限 |
-| `-JpegQuality` | `90` | 上传用 JPG 质量 |
-| `-RequestRetries` | `3` | 上传、创建任务、下载结果遇到网络 EOF/断连时的重试次数 |
-| `-RetryDelaySeconds` | `8` | 网络重试和队列重试的等待秒数 |
-| `-DisableTempCopies` | 关闭 | 默认先复制临时参考图再上传；只有调试时才关闭 |
+| `-WorkflowId` | yes for `submit_i2i.ps1`; optional for `img2img.ps1` | RunningHub workflow ID. Verified/default: `2047956784060567554`. |
+| `-ImagePaths` | yes | One or more local `.png/.jpg/.jpeg/.webp` files. |
+| `-Prompt` | yes | Text prompt. Chinese or English is fine. |
+| `-OutputPath` | no | Output file path. Defaults to desktop. |
+| `-AspectRatio` | no | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`; default `4:5`. |
+| `-Resolution` | no | Defaults to `2k`; use `1k` for faster checks or `4k` for high-resolution output when supported. |
+| `-Quality` | no | Optional if workflow exposes `quality`. |
+| `-Seed` | no | Optional if workflow exposes `seed`. |
+| `-ImageNodeIds` | no | Manual image LoadImage node IDs in order. |
+| `-PromptNodeId` | no | Manual text node ID. |
+| `-GenerationNodeId` | no | Manual generation node ID for `resolution/aspectRatio/seed/quality`. |
+| `-PromptFieldName` | no | Defaults to workflow-detected prompt field. |
+| `-PollDelays` | no | Extend for slow 4K jobs. |
 
-成功输出包含：
+## Workflow
 
-```text
-TASK_ID=...
-STATUS=SUCCESS
-OUTPUT_PATH=...
-IMAGE_URL=...
-```
+1. Upload local files via `/openapi/v2/media/upload/binary`.
+2. Use uploaded `data.fileName` for ComfyUI `LoadImage.image` node values.
+3. Fetch workflow JSON via `/api/openapi/getJsonApiFormat` when nodes are not provided.
+4. Detect image nodes, prompt node, and generation node from workflow graph connections.
+5. Create task via `/task/openapi/create`.
+6. Poll `/openapi/v2/query`.
+7. If `query.results` is empty, try `/task/openapi/outputs`.
+8. Download the first result URL to `-OutputPath`.
 
-## 执行规则
+## Rules
 
-- 默认保存到桌面；用户说“放桌面”时不需要额外复制。
-- 用户只给聊天附件时，若没有可上传路径，先在桌面/图片/下载等常见目录查找匹配图片；能合理确认就直接用本地路径，不能确认再问路径。
-- 支持 1-10 张参考图。多图产品参考时，第 1 张作为主身份参考，后续图片作为角度、细节、包装、尺寸、材质、结构参考。
-- 默认分辨率为 `2k`，走 Official Stable I2I 工作流 `workflowId=2052988540669177857`，支持 `quality=low|medium|high`；如果用户未指定 quality，默认用 `medium`。
-- 用户明确写 `1k` 时，走 1K I2I 工作流 `workflowId=2047956784060567554`，不传 `quality`。
-- 用户明确写 `4k` 时，走 Official Stable I2I 工作流 `workflowId=2052988540669177857`，`resolution=4k`。
-- 画幅比例支持：`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`。
-- 1K 工作流图片节点顺序：第 1 张 -> `nodeId=2`，第 2 张 -> `nodeId=5`，第 3 张 -> `nodeId=6`，第 4 张 -> `nodeId=7`，第 5 张 -> `nodeId=8`，第 6 张 -> `nodeId=11`，第 7 张 -> `nodeId=9`，第 8 张 -> `nodeId=12`，第 9 张 -> `nodeId=14`，第 10 张 -> `nodeId=13`。字段名均为 `image`。
-- Official Stable 工作流图片节点顺序：第 1 张 -> `nodeId=4`，第 2 张 -> `nodeId=5`，第 3 张 -> `nodeId=6`，第 4 张 -> `nodeId=7`，第 5 张 -> `nodeId=9`，第 6 张 -> `nodeId=10`，第 7 张 -> `nodeId=11`，第 8 张 -> `nodeId=12`，第 9 张 -> `nodeId=8`。字段名均为 `image`。
-- 如果用户提供少于工作流可用图片节点数量，实际提供的图片节点传入上传后的图片 URL；未使用的默认 `example.png` 图片节点必须显式传空字符串，避免默认参考图参与生成。
-- 1K 工作流提示词传入文本节点：`nodeId=10`，字段名为 `编辑文本`；生成主节点参数：`nodeId=15`，`resolution=1k`，`aspectRatio=4:5`，`seed=0`，不传 `quality`。
-- Official Stable 工作流提示词传入文本节点：`nodeId=13`，字段名为 `编辑文本`；生成主节点默认参数：`nodeId=1`，`resolution=2k`，`quality=medium` 或用户指定值，`aspectRatio=4:5`，`seed=0`。用户明确指定 `4k` 时使用 `resolution=4k`。
-- 用户给出产品图并要求“广告图/亚马逊图/英文输出”时，自行分析产品功能，写英文电商广告提示词。
-- 如果用户指定文件名或路径，传 `-OutputPath`；脚本会自动创建父目录。
-- 批量生成多张图时，最多同时提交 3 个 RunningHub I2I 任务。3 路并行已实测可用；默认按 3 个一组并行提交，超过 3 张时完成一批再继续下一批。
-- 若 3 个任务同时提交时出现 `TASK_QUEUE_MAXED`、创建请求 EOF 或下载 EOF，优先使用 5-10 秒错峰提交同一批 3 个任务。不要立刻判定工作流失败。
-- 多任务并行时，每个任务都调用一次 `scripts/img2img.ps1`，为每张结果设置唯一 `-OutputPath`，不要让多个任务写同一个输出文件。
-- 脚本默认会为输入图片创建本次任务专用临时副本再上传，避免 3 路并行时多个进程同时读取同一源图导致文件占用。
-- 大 PNG 或大尺寸参考图上传前会自动准备临时 JPG 上传副本，默认超过 4MB 时压缩到最长边 2048px、质量 90。原图不会被修改。
-- 上传必须使用 `multipart/form-data` 的 `file` 字段；不要使用裸二进制 body。
-- 任务查询使用 `/openapi/v2/query`，成功图片 URL 在 `results[0].url`。
-- 若轮询结束仍未完成，不要重新提交同一任务；可先扩大 `-PollDelays` 重新运行或临时用任务 ID 查询同一任务。
+- Use `scripts/submit_i2i.ps1` when specifying a workflow explicitly.
+- Use `scripts/img2img.ps1` for the default verified workflow or single-image `-ImagePath` convenience calls.
+- Default to `-Resolution 2k` unless the user asks for `1k` or `4k`.
+- Verified workflow `2047956784060567554` supports `1k`, `2k`, and `4k`; use `2k` as the normal default.
+- For unused image slots, pass empty strings to remaining detected image nodes to prevent default `example.png` references from affecting generation.
+- Use unique output paths for parallel jobs.
+- For 3-way parallel jobs, create per-task temp copies or let the script do it; do not make multiple upload processes read the same original file directly.
+- If `TASK_QUEUE_MAXED` appears, reduce concurrency or stagger task creation by 8-15 seconds.
+- If the task returns `SUCCESS_NO_URL`, the workflow likely lacks an API-visible Save Image output or RunningHub is not exposing outputs for that workflow.
 
-## 网络与权限
+## Reference
 
-RunningHub 是外部 API。若沙箱内出现 `Authentication failed`、TLS、DNS、连接失败、上传失败或下载失败，应按权限规则用同一命令请求联网执行权限后重试。
-
-## API 常量
-
-- Base URL: `https://www.runninghub.cn`
-- 1K Workflow ID: `2047956784060567554`
-- 1K generation node: `nodeId=15`, `resolution=1k`, `aspectRatio=4:5`, `seed=0`, no `quality`
-- 1K prompt node: `nodeId=10`, `fieldName=编辑文本`
-- 1K image nodes: `nodeId=2,5,6,7,8,11,9,12,14,13`, `fieldName=image`
-- Default Official Stable Workflow ID: `2052988540669177857`
-- Default Official Stable generation node: `nodeId=1`, `resolution=2k`, `quality=medium`, `aspectRatio=4:5`, `seed=0`
-- Official Stable 4K generation node: `nodeId=1`, `resolution=4k`, `quality=medium` unless specified, `aspectRatio=4:5`, `seed=0`
-- Official Stable prompt node: `nodeId=13`, `fieldName=编辑文本`
-- Official Stable image nodes: `nodeId=4,5,6,7,9,10,11,12,8`, `fieldName=image`
-- Upload: `POST /openapi/v2/media/upload/binary`
-- Create: `POST /task/openapi/create`
-- Query: `POST /openapi/v2/query`
-
-API key 已在脚本默认参数中配置；只有用户明确要求轮换密钥时才改脚本。
+Read `references/runninghub-api-notes.md` when changing the script or debugging workflow-specific behavior.

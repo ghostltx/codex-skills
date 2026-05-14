@@ -1,0 +1,3 @@
+display_name: RH GPT Image 2 I2I
+short_description: Upload local images to a RunningHub I2I workflow and download results.
+default_prompt: Use RH-GPT-IMAGE-2-I2I to upload local reference images, submit a prompt to the verified RunningHub image-to-image workflow, poll for completion, and save the generated image.
