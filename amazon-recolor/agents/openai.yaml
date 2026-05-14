@@ -1,0 +1,4 @@
+interface:
+  display_name: "Amazon Recolor"
+  short_description: "Recolor listings with N+M references"
+  default_prompt: "Use this skill to recolor Amazon ecommerce listing images. Interpret N+M as first N source images to edit and last M color/material reference images."
