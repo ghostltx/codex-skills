@@ -1,11 +1,11 @@
 ---
-name: zz-gpt-image2
-description: Use this skill when the user asks to use ZZ-gpt-image2, gpt-image-2, or the T8Star OpenAI-compatible image API at https://ai.t8star.cn/v1 to test connectivity, verify model availability, or generate images. Supports PowerShell-based API checks and image generation through /v1/images/generations using T8STAR_API_KEY.
+name: zz-gpt-image2 T2I
+description: Use this skill when the user asks to use ZZ-gpt-image2 T2I, ZZ-gpt-image2 text-to-image, gpt-image-2 text generation, or the T8Star OpenAI-compatible image API at https://ai.t8star.cn/v1 to test connectivity, verify model availability, or generate images from text prompts. Supports PowerShell-based API checks and text-to-image generation through /v1/images/generations using the configured API key.
 ---
 
-# ZZ gpt-image2
+# ZZ gpt-image2 T2I
 
-Use the bundled PowerShell script to test and generate images with the T8Star OpenAI-compatible API.
+Use the bundled PowerShell script to test and generate text-to-image outputs with the T8Star OpenAI-compatible API.
 
 ## Requirements
 
