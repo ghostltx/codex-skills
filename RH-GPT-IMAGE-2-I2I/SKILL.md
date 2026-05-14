@@ -67,7 +67,7 @@ IMAGE_URL=...
 - 用户明确写 `4k` 时，走 Official Stable I2I 工作流 `workflowId=2052988540669177857`，`resolution=4k`。
 - 画幅比例支持：`1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`。
 - 1K 工作流图片节点顺序：第 1 张 -> `nodeId=2`，第 2 张 -> `nodeId=5`，第 3 张 -> `nodeId=6`，第 4 张 -> `nodeId=7`，第 5 张 -> `nodeId=8`，第 6 张 -> `nodeId=11`，第 7 张 -> `nodeId=9`，第 8 张 -> `nodeId=12`，第 9 张 -> `nodeId=14`，第 10 张 -> `nodeId=13`。字段名均为 `image`。
-- Official Stable 工作流图片节点顺序：第 1 张 -> `nodeId=3`，第 2 张 -> `nodeId=4`，第 3 张 -> `nodeId=5`，第 4 张 -> `nodeId=6`，第 5 张 -> `nodeId=7`，第 6 张 -> `nodeId=9`，第 7 张 -> `nodeId=10`，第 8 张 -> `nodeId=11`，第 9 张 -> `nodeId=12`，第 10 张 -> `nodeId=8`。字段名均为 `image`。
+- Official Stable 工作流图片节点顺序：第 1 张 -> `nodeId=4`，第 2 张 -> `nodeId=5`，第 3 张 -> `nodeId=6`，第 4 张 -> `nodeId=7`，第 5 张 -> `nodeId=9`，第 6 张 -> `nodeId=10`，第 7 张 -> `nodeId=11`，第 8 张 -> `nodeId=12`，第 9 张 -> `nodeId=8`。字段名均为 `image`。
 - 如果用户提供少于工作流可用图片节点数量，实际提供的图片节点传入上传后的图片 URL；未使用的默认 `example.png` 图片节点必须显式传空字符串，避免默认参考图参与生成。
 - 1K 工作流提示词传入文本节点：`nodeId=10`，字段名为 `编辑文本`；生成主节点参数：`nodeId=15`，`resolution=1k`，`aspectRatio=4:5`，`seed=0`，不传 `quality`。
 - Official Stable 工作流提示词传入文本节点：`nodeId=13`，字段名为 `编辑文本`；生成主节点默认参数：`nodeId=1`，`resolution=2k`，`quality=medium` 或用户指定值，`aspectRatio=4:5`，`seed=0`。用户明确指定 `4k` 时使用 `resolution=4k`。
@@ -97,7 +97,7 @@ RunningHub 是外部 API。若沙箱内出现 `Authentication failed`、TLS、DN
 - Default Official Stable generation node: `nodeId=1`, `resolution=2k`, `quality=medium`, `aspectRatio=4:5`, `seed=0`
 - Official Stable 4K generation node: `nodeId=1`, `resolution=4k`, `quality=medium` unless specified, `aspectRatio=4:5`, `seed=0`
 - Official Stable prompt node: `nodeId=13`, `fieldName=编辑文本`
-- Official Stable image nodes: `nodeId=3,4,5,6,7,9,10,11,12,8`, `fieldName=image`
+- Official Stable image nodes: `nodeId=4,5,6,7,9,10,11,12,8`, `fieldName=image`
 - Upload: `POST /openapi/v2/media/upload/binary`
 - Create: `POST /task/openapi/create`
 - Query: `POST /openapi/v2/query`

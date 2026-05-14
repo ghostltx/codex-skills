@@ -1,14 +1,18 @@
 param(
   [string]$BaseUrl = "https://ai.t8star.cn/v1",
   [string]$Model = "gpt-image-2",
-  [switch]$Generate,
-  [string]$Prompt = "A simple red apple on a white background",
+  [string]$ImagePath = "",
+  [string[]]$ImagePaths = @(),
+  [Parameter(Mandatory = $true)]
+  [string]$Prompt,
+  [string]$MaskPath = "",
   [string]$Size = "2048x2048",
   [int]$TimeoutSec = 180,
   [switch]$Async,
+  [switch]$Sync,
   [switch]$SkipModelCheck,
   [int]$PollIntervalSec = 10,
-  [int]$MaxPollSec = 900,
+  [int]$MaxPollSec = 1200,
   [int]$MaxPollErrors = 12,
   [string]$OutputPath = "",
   [string]$ApiKey = "sk-8eqMmG42duTRthbDR3Afa14k09pkvGVhTD5akQog5YrmgqCQ"
@@ -59,7 +63,7 @@ function Get-DefaultOutputPath {
   }
 
   $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-  return (Join-Path $desktop "zz_gpt_image2_$timestamp.png")
+  return (Join-Path $desktop "zz_gpt_image2_i2i_$timestamp.png")
 }
 
 function Resolve-OutputPath {
@@ -81,8 +85,12 @@ function Resolve-OutputPath {
 function Test-ImageSize {
   param([string]$Value)
 
+  if ($Value -eq "auto") {
+    return
+  }
+
   if ($Value -notmatch '^(\d+)x(\d+)$') {
-    Write-Error "Invalid size '$Value'. Expected format like 1024x1024."
+    Write-Error "Invalid size '$Value'. Expected format like 2048x2048 or auto."
   }
 
   $width = [int]$Matches[1]
@@ -105,8 +113,82 @@ function Test-ImageSize {
   }
 }
 
+function Get-InputImagePaths {
+  $paths = @()
+  if (-not [string]::IsNullOrWhiteSpace($ImagePath)) {
+    $paths += $ImagePath
+  }
+  if ($ImagePaths -and $ImagePaths.Count -gt 0) {
+    $paths += $ImagePaths
+  }
+
+  $paths = $paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
+  if (-not $paths -or $paths.Count -eq 0) {
+    Write-Error "Provide -ImagePath or -ImagePaths."
+  }
+
+  foreach ($path in $paths) {
+    if (-not (Test-Path -LiteralPath $path)) {
+      Write-Error "Input image not found: $path"
+    }
+  }
+
+  return $paths
+}
+
+function New-TempImageCopies {
+  param([Parameter(Mandatory = $true)][string[]]$Paths)
+
+  $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("zz_gpt_image2_i2i_" + [guid]::NewGuid().ToString("N"))
+  New-Item -ItemType Directory -Path $tempRoot | Out-Null
+
+  $copies = @()
+  for ($i = 0; $i -lt $Paths.Count; $i++) {
+    $sourcePath = $Paths[$i]
+    $extension = [IO.Path]::GetExtension($sourcePath)
+    if ([string]::IsNullOrWhiteSpace($extension)) {
+      $extension = ".png"
+    }
+
+    $copyPath = Join-Path $tempRoot ("input_{0:D2}{1}" -f ($i + 1), $extension)
+    Copy-Item -LiteralPath $sourcePath -Destination $copyPath -Force
+    $copies += $copyPath
+  }
+
+  return @{
+    Root = $tempRoot
+    Paths = $copies
+  }
+}
+
+function Save-ImageResult {
+  param(
+    [Parameter(Mandatory = $true)]$Result,
+    [Parameter(Mandatory = $true)][string]$Path
+  )
+
+  $image = $Result.data | Select-Object -First 1
+  if ($image.b64_json) {
+    [IO.File]::WriteAllBytes($Path, [Convert]::FromBase64String($image.b64_json))
+    Write-Host "OK: image saved to $Path"
+  } elseif ($image.url) {
+    Invoke-WebRequest -Uri $image.url -OutFile $Path -UseBasicParsing -TimeoutSec $TimeoutSec
+    Write-Host "OK: image URL returned and downloaded:"
+    Write-Host $image.url
+    Write-Host "OK: image saved to $Path"
+  } else {
+    Write-Host "Edit response:"
+    $Result | ConvertTo-Json -Depth 12
+  }
+}
+
 $headers = @{
   Authorization = "Bearer $ApiKey"
+}
+
+$useAsync = -not $Sync
+if ($Async) {
+  $useAsync = $true
 }
 
 if (-not $SkipModelCheck) {
@@ -120,54 +202,67 @@ if (-not $SkipModelCheck) {
 
   Write-Host "OK: connected and authenticated."
   Write-Host "OK: model found: $($target.id)"
-  Write-Host "Endpoint types: $($target.supported_endpoint_types -join ', ')"
 } else {
   Write-Host "Skipping /models check. Using model: $Model"
 }
 
-if (-not $Generate) {
-  Write-Host "Skipped image generation. Add -Generate to test /images/generations."
-  exit 0
+Test-ImageSize -Value $Size
+$inputPaths = Get-InputImagePaths
+$tempInputs = New-TempImageCopies -Paths $inputPaths
+$inputPaths = $tempInputs.Paths
+$resolvedOutputPath = Resolve-OutputPath -Path $OutputPath
+
+$editUri = "$BaseUrl/images/edits"
+if ($useAsync) {
+  $separator = if ($editUri.Contains("?")) { "&" } else { "?" }
+  $editUri = "$editUri${separator}async=true"
+  Write-Host "Async edit mode enabled."
+} else {
+  Write-Host "Sync edit mode enabled."
 }
 
-Write-Host "Testing image generation with model: $Model"
-Test-ImageSize -Value $Size
-
-$body = @{
+$form = @{
   model = $Model
   prompt = $Prompt
   size = $Size
-  n = 1
-} | ConvertTo-Json -Depth 5
-
-$generationUri = "$BaseUrl/images/generations"
-if ($Async) {
-  $separator = if ($generationUri.Contains("?")) { "&" } else { "?" }
-  $generationUri = "$generationUri${separator}async=true"
-  Write-Host "Async mode enabled."
 }
 
+if (-not [string]::IsNullOrWhiteSpace($MaskPath)) {
+  if (-not (Test-Path -LiteralPath $MaskPath)) {
+    Write-Error "Mask image not found: $MaskPath"
+  }
+  $form.mask = Get-Item -LiteralPath $MaskPath
+}
+
+if ($inputPaths.Count -eq 1) {
+  $form.image = Get-Item -LiteralPath $inputPaths[0]
+} else {
+  $form.image = @($inputPaths | ForEach-Object { Get-Item -LiteralPath $_ })
+}
+
+Write-Host "Submitting image edit with $($inputPaths.Count) input image(s)."
 $result = Invoke-RestMethod `
   -Method Post `
-  -Uri $generationUri `
-  -Headers ($headers + @{ "Content-Type" = "application/json" }) `
-  -Body $body `
+  -Uri $editUri `
+  -Headers $headers `
+  -Form $form `
   -TimeoutSec $TimeoutSec
 
-if ($Async) {
+if ($useAsync) {
   $taskId = $result.task_id
   if (-not $taskId -and $result.data.task_id) {
     $taskId = $result.data.task_id
   }
   if (-not $taskId) {
     Write-Host "Async submit response:"
-    $result | ConvertTo-Json -Depth 10
-    Write-Error "Async request did not return task_id."
+    $result | ConvertTo-Json -Depth 12
+    Write-Error "Async edit request did not return task_id."
   }
 
-  Write-Host "OK: async task submitted: $taskId"
+  Write-Host "OK: async edit task submitted: $taskId"
   $deadline = (Get-Date).AddSeconds($MaxPollSec)
   $pollErrors = 0
+  $status = ""
   do {
     Start-Sleep -Seconds $PollIntervalSec
     try {
@@ -196,7 +291,7 @@ if ($Async) {
 
     if ($status -eq "FAILURE") {
       $task | ConvertTo-Json -Depth 12
-      Write-Error "Async image generation failed."
+      Write-Error "Async image edit failed."
     }
 
     if ($status -eq "SUCCESS") {
@@ -206,22 +301,15 @@ if ($Async) {
   } while ((Get-Date) -lt $deadline)
 
   if ($status -ne "SUCCESS") {
-    Write-Error "Async image generation did not finish within $MaxPollSec seconds."
+    Write-Error "Async image edit did not finish within $MaxPollSec seconds."
   }
 }
 
-$image = $result.data | Select-Object -First 1
-if ($image.b64_json) {
-  $resolvedOutputPath = Resolve-OutputPath -Path $OutputPath
-  [IO.File]::WriteAllBytes($resolvedOutputPath, [Convert]::FromBase64String($image.b64_json))
-  Write-Host "OK: image saved to $resolvedOutputPath"
-} elseif ($image.url) {
-  $resolvedOutputPath = Resolve-OutputPath -Path $OutputPath
-  Invoke-WebRequest -Uri $image.url -OutFile $resolvedOutputPath -UseBasicParsing -TimeoutSec $TimeoutSec
-  Write-Host "OK: image URL returned and downloaded:"
-  Write-Host $image.url
-  Write-Host "OK: image saved to $resolvedOutputPath"
-} else {
-  Write-Host "Generation response:"
-  $result | ConvertTo-Json -Depth 10
+Save-ImageResult -Result $result -Path $resolvedOutputPath
+
+if ($tempInputs.Root -and (Test-Path -LiteralPath $tempInputs.Root)) {
+  Get-ChildItem -LiteralPath $tempInputs.Root -File | ForEach-Object {
+    Remove-Item -LiteralPath $_.FullName -Force
+  }
+  Remove-Item -LiteralPath $tempInputs.Root -Force
 }

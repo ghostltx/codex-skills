@@ -247,7 +247,7 @@ $promptNodeId = "10"
 $imageNodeIds = @("2", "5", "6", "7", "8", "11", "9", "12", "14", "13")
 if ($useStableWorkflow) {
     $promptNodeId = "13"
-    $imageNodeIds = @("3", "4", "5", "6", "7", "9", "10", "11", "12", "8")
+    $imageNodeIds = @("4", "5", "6", "7", "9", "10", "11", "12", "8")
     if ([string]::IsNullOrWhiteSpace($Quality)) {
         $Quality = "medium"
     }
@@ -448,7 +448,27 @@ foreach ($delay in $PollDelays) {
     }
 
     if ([string]::IsNullOrWhiteSpace($resultImageUrl)) {
-        Write-Error "Task succeeded but no image URL was returned."
+        try {
+            $outputsBody = @{
+                apiKey = $ApiKey
+                taskId = $taskId
+            } | ConvertTo-Json
+            $outputsResponse = Invoke-RestMethod `
+                -Uri "$BaseUrl/task/openapi/outputs" `
+                -Method Post `
+                -Headers $queryHeaders `
+                -Body $outputsBody
+
+            if ($outputsResponse.code -eq 0 -and $outputsResponse.data -and $outputsResponse.data.Count -gt 0) {
+                $resultImageUrl = $outputsResponse.data[0].fileUrl
+            }
+        } catch {
+            Write-Warning "Fallback output query failed: $_"
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($resultImageUrl)) {
+        Write-Error "Task succeeded but no image URL was returned by query results or outputs."
         Write-Result -TaskId $taskId -Status "SUCCESS_NO_URL"
         exit 1
     }

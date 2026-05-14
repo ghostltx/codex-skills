@@ -20,3 +20,5 @@
 !zz-gpt-image2/**
 zz-gpt-image2/.env
 zz-gpt-image2/scripts/.env
+!zz-gpt-image2-i2i/
+!zz-gpt-image2-i2i/**

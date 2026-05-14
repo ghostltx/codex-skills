@@ -1,0 +1,4 @@
+interface:
+  display_name: "ZZ gpt-image2 I2I"
+  short_description: "Edit images through the T8Star gpt-image-2 edits API, sync or async."
+  default_prompt: "Use ZZ gpt-image2 I2I to edit a local image with gpt-image-2 edits."

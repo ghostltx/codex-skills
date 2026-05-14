@@ -13,6 +13,7 @@ Use the bundled PowerShell script to test and generate images with the T8Star Op
 - Read the API key from `$env:T8STAR_API_KEY`; do not hard-code keys into skill files or generated scripts.
 - Default base URL: `https://ai.t8star.cn/v1`.
 - Default model: `gpt-image-2`.
+- Default output size: `2048x2048` (2K square) unless the user specifies another size or aspect ratio.
 
 ## Connectivity Test
 
@@ -97,7 +98,7 @@ For batch work, prefer concurrency `5` for 2K and concurrency `1-2` for 4K. Poll
 
 - `-Prompt`: image prompt.
 - `-OutputPath`: local save path for base64 image responses and downloaded URL responses. Defaults to desktop `zz_gpt_image2_时间戳.png`.
-- `-Size`: image size request, defaults to `1024x1024`.
+- `-Size`: image size request, defaults to `2048x2048`.
 - `-TimeoutSec`: generation request timeout, defaults to `180`.
 - `-Async`: submit async image generation and poll task status.
 - `-SkipModelCheck`: skip `/models` when the model is already known and only generation should be tested.
