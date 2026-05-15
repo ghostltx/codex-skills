@@ -15,7 +15,7 @@ param(
   [int]$MaxPollSec = 1200,
   [int]$MaxPollErrors = 12,
   [string]$OutputPath = "",
-  [string]$ApiKey = "sk-8eqMmG42duTRthbDR3Afa14k09pkvGVhTD5akQog5YrmgqCQ"
+  [string]$ApiKey = "sk-8eqMmG42duTRthbDR3Afa14k09pkvGVhTD5akQog5YrmgqCQ,sk-UqNU5XYCnahW54wzV75KMPH2FSiSivSK0iGp7eu280xWgrlw,sk-zhjsmJHyA9ZUEzqV0mHswsQqZfyhyocBMJCRNd3SbatxsUMa,sk-WwEfMmHzVW9cd5w38euoUB6G0rJ0O2aTFfxbpBGXDWESC2d2"
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,6 +54,25 @@ if ([string]::IsNullOrWhiteSpace($ApiKey)) {
 
 if ([string]::IsNullOrWhiteSpace($ApiKey)) {
   Write-Error "Missing API key. Pass -ApiKey or set `$env:T8STAR_API_KEY."
+}
+
+$apiKeys = @(
+  $ApiKey -split "," |
+    ForEach-Object { $_.Trim() } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    Select-Object -Unique
+)
+
+if (-not $apiKeys -or $apiKeys.Count -eq 0) {
+  Write-Error "Missing API key. Pass -ApiKey or set `$env:T8STAR_API_KEY."
+}
+
+function Get-AuthHeaders {
+  param([Parameter(Mandatory = $true)][int]$KeyIndex)
+
+  return @{
+    Authorization = "Bearer $($apiKeys[$KeyIndex])"
+  }
 }
 
 function Get-DefaultOutputPath {
@@ -182,28 +201,43 @@ function Save-ImageResult {
   }
 }
 
-$headers = @{
-  Authorization = "Bearer $ApiKey"
-}
-
 $useAsync = -not $Sync
 if ($Async) {
   $useAsync = $true
 }
 
+$activeKeyIndex = 0
 if (-not $SkipModelCheck) {
   Write-Host "Testing API connectivity: $BaseUrl/models"
-  $models = Invoke-RestMethod -Method Get -Uri "$BaseUrl/models" -Headers $headers -TimeoutSec 30
+  $modelCheckOk = $false
+  for ($keyAttempt = 0; $keyAttempt -lt $apiKeys.Count; $keyAttempt++) {
+    $headers = Get-AuthHeaders -KeyIndex $keyAttempt
+    try {
+      $models = Invoke-RestMethod -Method Get -Uri "$BaseUrl/models" -Headers $headers -TimeoutSec 30
 
-  $target = $models.data | Where-Object { $_.id -eq $Model } | Select-Object -First 1
-  if (-not $target) {
-    Write-Error "Connected, but model '$Model' was not found in /models."
+      $target = $models.data | Where-Object { $_.id -eq $Model } | Select-Object -First 1
+      if (-not $target) {
+        Write-Error "Connected, but model '$Model' was not found in /models."
+      }
+
+      $activeKeyIndex = $keyAttempt
+      $modelCheckOk = $true
+      Write-Host "OK: connected and authenticated."
+      Write-Host "OK: model found: $($target.id)"
+      Write-Host "KEY_POOL_COUNT=$($apiKeys.Count)"
+      Write-Host "ACTIVE_KEY_INDEX=$($activeKeyIndex + 1)"
+      break
+    } catch {
+      Write-Host "MODEL_CHECK_KEY_FAILED_INDEX=$($keyAttempt + 1) ERROR=$($_.Exception.Message)"
+    }
   }
 
-  Write-Host "OK: connected and authenticated."
-  Write-Host "OK: model found: $($target.id)"
+  if (-not $modelCheckOk) {
+    Write-Error "All configured API keys failed /models check."
+  }
 } else {
   Write-Host "Skipping /models check. Using model: $Model"
+  Write-Host "KEY_POOL_COUNT=$($apiKeys.Count)"
 }
 
 Test-ImageSize -Value $Size
@@ -241,68 +275,97 @@ if ($inputPaths.Count -eq 1) {
 }
 
 Write-Host "Submitting image edit with $($inputPaths.Count) input image(s)."
-$result = Invoke-RestMethod `
-  -Method Post `
-  -Uri $editUri `
-  -Headers $headers `
-  -Form $form `
-  -TimeoutSec $TimeoutSec
+$result = $null
+$lastFailure = ""
+$completed = $false
+for ($keyAttempt = 0; $keyAttempt -lt $apiKeys.Count; $keyAttempt++) {
+  $keyIndex = ($activeKeyIndex + $keyAttempt) % $apiKeys.Count
+  $headers = Get-AuthHeaders -KeyIndex $keyIndex
+  Write-Host "USING_KEY_INDEX=$($keyIndex + 1)/$($apiKeys.Count)"
 
-if ($useAsync) {
-  $taskId = $result.task_id
-  if (-not $taskId -and $result.data.task_id) {
-    $taskId = $result.data.task_id
-  }
-  if (-not $taskId) {
-    Write-Host "Async submit response:"
-    $result | ConvertTo-Json -Depth 12
-    Write-Error "Async edit request did not return task_id."
-  }
+  try {
+    $result = Invoke-RestMethod `
+      -Method Post `
+      -Uri $editUri `
+      -Headers $headers `
+      -Form $form `
+      -TimeoutSec $TimeoutSec
 
-  Write-Host "OK: async edit task submitted: $taskId"
-  $deadline = (Get-Date).AddSeconds($MaxPollSec)
-  $pollErrors = 0
-  $status = ""
-  do {
-    Start-Sleep -Seconds $PollIntervalSec
-    try {
-      $task = Invoke-RestMethod `
-        -Method Get `
-        -Uri "$BaseUrl/images/tasks/$taskId" `
-        -Headers ($headers + @{ "Content-Type" = "application/json" }) `
-        -TimeoutSec $TimeoutSec
-    } catch {
-      $pollErrors += 1
-      Write-Host "Task poll error $pollErrors/$MaxPollErrors`: $($_.Exception.Message)"
-      if ($pollErrors -ge $MaxPollErrors) {
-        throw
+    if ($useAsync) {
+      $taskId = $result.task_id
+      if (-not $taskId -and $result.data.task_id) {
+        $taskId = $result.data.task_id
       }
-      continue
-    }
+      if (-not $taskId) {
+        Write-Host "Async submit response:"
+        $result | ConvertTo-Json -Depth 12
+        throw "Async edit request did not return task_id."
+      }
 
-    $taskData = if ($task.data) { $task.data } else { $task }
-    $status = $taskData.status
-    $progress = $taskData.progress
-    if ($progress) {
-      Write-Host "Task status: $status ($progress)"
+      Write-Host "OK: async edit task submitted: $taskId"
+      $deadline = (Get-Date).AddSeconds($MaxPollSec)
+      $pollErrors = 0
+      $status = ""
+      do {
+        Start-Sleep -Seconds $PollIntervalSec
+        try {
+          $task = Invoke-RestMethod `
+            -Method Get `
+            -Uri "$BaseUrl/images/tasks/$taskId" `
+            -Headers ($headers + @{ "Content-Type" = "application/json" }) `
+            -TimeoutSec $TimeoutSec
+        } catch {
+          $pollErrors += 1
+          Write-Host "Task poll error $pollErrors/$MaxPollErrors`: $($_.Exception.Message)"
+          if ($pollErrors -ge $MaxPollErrors) {
+            throw
+          }
+          continue
+        }
+
+        $taskData = if ($task.data) { $task.data } else { $task }
+        $status = $taskData.status
+        $progress = $taskData.progress
+        if ($progress) {
+          Write-Host "Task status: $status ($progress)"
+        } else {
+          Write-Host "Task status: $status"
+        }
+
+        if ($status -eq "FAILURE") {
+          $lastFailure = if ($taskData.fail_reason) { $taskData.fail_reason } elseif ($taskData.failedReason) { ($taskData.failedReason | ConvertTo-Json -Depth 5 -Compress) } else { "Async image edit failed." }
+          Write-Host "TASK_FAILED_KEY_INDEX=$($keyIndex + 1) REASON=$lastFailure"
+          throw "Async image edit failed."
+        }
+
+        if ($status -eq "SUCCESS") {
+          $result = $taskData.data
+          $completed = $true
+          break
+        }
+      } while ((Get-Date) -lt $deadline)
+
+      if (-not $completed) {
+        throw "Async image edit did not finish within $MaxPollSec seconds."
+      }
     } else {
-      Write-Host "Task status: $status"
+      $completed = $true
     }
 
-    if ($status -eq "FAILURE") {
-      $task | ConvertTo-Json -Depth 12
-      Write-Error "Async image edit failed."
-    }
-
-    if ($status -eq "SUCCESS") {
-      $result = $taskData.data
+    if ($completed) {
       break
     }
-  } while ((Get-Date) -lt $deadline)
-
-  if ($status -ne "SUCCESS") {
-    Write-Error "Async image edit did not finish within $MaxPollSec seconds."
+  } catch {
+    $lastFailure = $_.Exception.Message
+    Write-Host "KEY_RETRY_FAILED_INDEX=$($keyIndex + 1) ERROR=$lastFailure"
+    if ($keyAttempt -lt ($apiKeys.Count - 1)) {
+      Write-Host "SWITCHING_TO_NEXT_KEY"
+    }
   }
+}
+
+if (-not $completed) {
+  Write-Error "Image edit failed after trying $($apiKeys.Count) API key(s). Last error: $lastFailure"
 }
 
 Save-ImageResult -Result $result -Path $resolvedOutputPath

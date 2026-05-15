@@ -47,7 +47,7 @@ Common parameters:
 | `-PromptNodeId` | no | Manual text node ID. |
 | `-GenerationNodeId` | no | Manual generation node ID for `resolution/aspectRatio/seed/quality`. |
 | `-PromptFieldName` | no | Defaults to workflow-detected prompt field. |
-| `-PollDelays` | no | Extend for slow 4K jobs. |
+| `-PollDelays` | no | Defaults to fast polling: start after 30 seconds, then query every 5 seconds for about 200 seconds. Extend for slow 4K jobs. |
 
 ## Workflow
 
@@ -65,6 +65,7 @@ Common parameters:
 - Use `scripts/submit_i2i.ps1` when specifying a workflow explicitly.
 - Use `scripts/img2img.ps1` for the default verified workflow or single-image `-ImagePath` convenience calls.
 - Default to `-Resolution 2k` unless the user asks for `1k` or `4k`.
+- Default polling starts 30 seconds after create, then checks every 5 seconds. If no image is returned after about 200 seconds, report the last status and task ID so the result can be downloaded later.
 - Verified workflow `2047956784060567554` supports `1k`, `2k`, and `4k`; use `2k` as the normal default.
 - For unused image slots, pass empty strings to remaining detected image nodes to prevent default `example.png` references from affecting generation.
 - Use unique output paths for parallel jobs.

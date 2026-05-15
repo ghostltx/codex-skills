@@ -26,7 +26,7 @@ description_en: RunningHub Text-to-Image skill that saves generated images to th
 | `-Resolution` | `2k` | 生成分辨率，默认传入工作流节点 `resolution=2k` |
 | `-Seed` | 随机 | 指定后便于复现 |
 | `-OutputPath` | 桌面 `runninghub_t2i_时间戳.png` | 自定义保存位置 |
-| `-PollDelays` | `60,30,30,60,60,60,60,60,60` | 查询等待节奏，总计 480 秒 |
+| `-PollDelays` | `30` 后每 `5` 秒查询一次，总计约 `200` 秒 | 快轮询：提交后 30 秒开始查，之后每 5 秒查一次；200 秒未出图则提示最后状态和 taskId |
 | `-RequestRetries` | `3` | 创建任务、下载结果遇到网络 EOF/断连时的重试次数 |
 | `-RetryDelaySeconds` | `8` | 网络重试和队列重试的等待秒数 |
 | `-Interactive` | 关闭 | 手动运行脚本时用编号菜单选择比例和分辨率 |
@@ -47,7 +47,7 @@ description_en: RunningHub Text-to-Image skill that saves generated images to th
 - 如果用户指定文件名或路径，传 `-OutputPath`；脚本会自动创建父目录。
 - 竖版海报优先用 `3:4` 或 `4:5`，电商/信息图竖版优先用 `4:5`，手机壁纸优先用 `9:16`，横版图优先用 `16:9`，超宽横幅优先用 `21:9`。
 - 生成主节点默认参数包含 `resolution=2k`；除非用户明确要求低分辨率，不要省略或降为 `1k`。
-- 脚本会提交任务、按默认 480 秒轮询节奏查询、成功后下载图片。
+- 脚本会提交任务、30 秒后开始查询，之后每 5 秒查询一次；任何任务一旦 `SUCCESS` 就立即下载图片。约 200 秒未出图时会输出 `TIMEOUT`、最后状态和 `TASK_ID`，可稍后补拉。
 - 批量生成多张图时，最多同时提交 3 个 RunningHub T2I 任务。若 3 个任务同时提交时出现 `TASK_QUEUE_MAXED`、创建请求 EOF 或下载 EOF，优先使用 5-10 秒错峰提交同一批 3 个任务。
 - 创建任务和下载结果已内置重试，默认最多 3 次，每次间隔 8 秒。
 - 成功输出包含 `TASK_ID=...`、`STATUS=SUCCESS`、`OUTPUT_PATH=...`、`IMAGE_URL=...`，最终回复用户时给出本地路径。

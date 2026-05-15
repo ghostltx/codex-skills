@@ -21,7 +21,7 @@ param(
 
     [string]$WorkflowId = "2047717286877863938",
 
-    [int[]]$PollDelays = @(60, 30, 30, 60, 60, 60, 60, 60, 60),
+    [int[]]$PollDelays = @(30, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5),
 
     [int]$RequestRetries = 3,
 
@@ -205,6 +205,7 @@ $taskId = $createResponse.data.taskId
 Write-Host "TaskId: $taskId"
 
 $elapsed = 0
+$lastStatus = "UNKNOWN"
 foreach ($delay in $PollDelays) {
     $elapsed += $delay
     Write-Host "Waiting ${delay}s before query (${elapsed}s elapsed)..."
@@ -220,6 +221,7 @@ foreach ($delay in $PollDelays) {
     }
 
     $status = $queryResponse.status
+    $lastStatus = $status
     Write-Host "Status: $status"
 
     if ($status -eq "FAILED") {
@@ -261,6 +263,6 @@ foreach ($delay in $PollDelays) {
     exit 0
 }
 
-Write-Warning "Task is still running after $elapsed seconds."
+Write-Warning "Task did not return an image within $elapsed seconds. Last status: $lastStatus. If it is still RUNNING on RunningHub, retry query/download later with TASK_ID=$taskId."
 Write-Result -TaskId $taskId -Status "TIMEOUT"
 exit 2

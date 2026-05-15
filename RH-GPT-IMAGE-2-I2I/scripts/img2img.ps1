@@ -28,7 +28,7 @@ param(
 
     [string]$GenerationNodeId = "",
 
-    [int[]]$PollDelays = @(60, 30, 30, 60, 60, 60, 60, 60, 60),
+    [int[]]$PollDelays = @(30, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5),
 
     [int64]$MaxUploadBytes = 4194304,
 
