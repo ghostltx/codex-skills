@@ -17,7 +17,7 @@ param(
     [ValidateSet("1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9")]
     [string]$AspectRatio = "4:5",
 
-    [ValidateSet("", "1k", "2k", "4k")]
+    [ValidateSet("", "1k", "2k")]
     [string]$Resolution = "2k",
 
     [ValidateSet("", "low", "medium", "high")]

@@ -21,7 +21,7 @@ param(
     [ValidateSet("", "low", "medium", "high")]
     [string]$Quality = "",
 
-    [ValidateSet("", "1k", "2k", "4k")]
+    [ValidateSet("", "1k", "2k")]
     [string]$Resolution = "2k",
 
     [long]$Seed = 0,
