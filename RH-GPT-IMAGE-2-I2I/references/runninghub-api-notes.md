@@ -34,6 +34,9 @@ Concurrency notes:
 - Account/API key concurrency may be lower than enterprise quota pages imply.
 - Treat concurrency as "running/queued task slots", not "safe simultaneous HTTP requests".
 - For stability, stagger creates and avoid multiple upload processes reading the same source file.
+- Multi-reference I2I tasks may run longer than the local 300-second polling window. A local timeout does not mean platform failure; query the saved task ID later and download when `SUCCESS`.
+- Do not launch the next batch while prior timed-out tasks are still `RUNNING`, or subsequent creates may return `TASK_QUEUE_MAXED`.
+- Batch jobs can use 3 parallel tasks, but only start the next group after the current group has returned success/downloaded or otherwise freed the queue.
 
 Local verified workflow notes:
 
