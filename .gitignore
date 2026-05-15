@@ -24,3 +24,5 @@ zz-gpt-image2-T2I/scripts/.env
 !zz-gpt-image2-i2i/**
 !amazon-recolor/
 !amazon-recolor/**
+!new-api-rim-gpt-image-2-only-1k/
+!new-api-rim-gpt-image-2-only-1k/**

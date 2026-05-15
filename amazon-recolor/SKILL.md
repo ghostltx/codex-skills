@@ -19,6 +19,12 @@ Examples:
 
 Use reference images only as color/material sources. Do not copy their layout, camera angle, background, product geometry, crop, or scene.
 
+## Generation Routing
+
+Default to the system built-in `imagegen` workflow for Amazon recolor tasks.
+
+Use RunningHub image-to-image only when the user explicitly asks to combine this skill with `runninghub-generic-i2i`, names RunningHub/I2I as the desired route, or otherwise clearly requests the external I2I workflow for the current task.
+
 ## Workflow
 
 1. Identify the source count and reference count from the user's `N+M` shorthand or explicit wording.
@@ -135,7 +141,7 @@ When `M` is greater than 1:
 
 ## RunningHub I2I Notes
 
-When using RunningHub image-to-image:
+Use this section only when RunningHub image-to-image was explicitly requested for the current task.
 
 - Submit each source image with the target reference image(s) whenever the workflow is intended to edit one source at a time.
 - Use unique output paths that include the source index or source filename stem.

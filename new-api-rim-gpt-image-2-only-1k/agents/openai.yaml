@@ -1,0 +1,4 @@
+interface:
+  display_name: "NEW API 「Rim」gpt-image-2 only-1k"
+  short_description: "Generate about 1K/1.5MP images with the configured NewAPI Rim gpt-image-2 model."
+  default_prompt: "Use $new-api-rim-gpt-image-2-only-1k to generate an image from my prompt and save it locally."
