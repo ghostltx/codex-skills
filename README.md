@@ -4,6 +4,21 @@ This repository stores personal Codex skills and version tags for rollback.
 
 ## Version Notes
 
+### v1.03
+
+`v1.03` upgrades the personal skills sync workflow with versioned releases:
+
+- Upload/sync now creates a version Tag, pushes it to GitHub, and creates a GitHub Release from that Tag.
+- Download/pull now lists remote Tags first and requires selecting a Tag version before overwriting tracked local skill files.
+- Added script options:
+  - `-TagName` for explicit version Tags.
+  - `-ListTags` for remote Tag discovery.
+  - `-ReleaseTitle` and `-ReleaseNotes` for Release metadata.
+- Release creation uses `gh` when available, otherwise falls back to the GitHub API through `GH_TOKEN` or `GITHUB_TOKEN`.
+- Tag pulls use isolated remote Tag refs so stale local Tags cannot block version selection.
+
+In short, `v1.03` makes skills sync version-aware: uploads become tagged releases, and downloads become deliberate version restores.
+
 ### v1.01
 
 `v1.01` is based on `v1.0` and contains one update commit:

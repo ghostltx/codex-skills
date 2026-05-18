@@ -17,8 +17,8 @@ https://github.com/ghostltx/codex-skills.git
 
 This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 
-- When the user says `同步`, upload/push local personal skill changes to GitHub.
-- When the user says `拉取`, download from GitHub and overwrite tracked local personal skill files.
+- When the user says `同步`, upload/push local personal skill changes to GitHub, create a version Tag, push the Tag, and create a GitHub Release from that Tag.
+- When the user says `拉取`, list available version Tags first, ask the user which Tag to download, then overwrite tracked local personal skill files from that Tag.
 - Do not apply this shorthand to any other repository or normal project workspace.
 
 ## Push Workflow
@@ -31,9 +31,13 @@ This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 6. Stage only repository-managed skill files and Git metadata.
 7. Commit when there are staged changes.
 8. Push the current branch to `origin`.
-9. Report the commit hash, branch, remote, and whether the working tree is clean.
+9. Create a version Tag for the pushed HEAD. If the user gave a Tag name, pass it with `-TagName`; otherwise let the script create a timestamp Tag.
+10. Push the Tag to `origin`.
+11. Create a GitHub Release based on that Tag. The script uses `gh` when available, otherwise `GH_TOKEN` or `GITHUB_TOKEN` with the GitHub API.
+12. Report the commit hash, branch, Tag, Release result, remote, and whether the working tree is clean.
 
 Use `scripts/sync-skills-git.ps1` for the normal upload path. Pass `-Message` when the user provides a commit message; otherwise write a concise intent-based message from the changed files.
+If the user provides a Tag, pass `-TagName`. If the user provides Release title or notes, pass `-ReleaseTitle` and `-ReleaseNotes`.
 
 ## Pull / Overwrite Workflow
 
@@ -42,11 +46,12 @@ Use this when the user wants to download skills from GitHub, restore the company
 1. Check repository status and remote.
 2. Ensure `origin` points to `https://github.com/ghostltx/codex-skills.git`; stop if it points anywhere else.
 3. Copy Windows system proxy into repository-local Git proxy settings when needed.
-4. Fetch `origin`.
-5. If the user says `拉取`, download from GitHub and overwrite tracked local personal skill files with `-Mode Pull -Overwrite`.
-6. Report the branch, remote, HEAD commit, and working tree status.
+4. Fetch `origin`; list Tags from the remote repository so stale local Tags cannot block version selection.
+5. If the user says `拉取`, first run `scripts/sync-skills-git.ps1 -ListTags`, show the available Tags, and ask the user to choose exactly one Tag. Do not choose a Tag silently unless the user explicitly named one.
+6. Download from GitHub and overwrite tracked local personal skill files from the chosen Tag with `-Mode Pull -Overwrite -TagName <tag>`.
+7. Report the branch, selected Tag, remote, HEAD commit, and working tree status.
 
-Important: overwrite mode is allowed only for this personal skills repository when the user explicitly asks to pull/overwrite local skills from GitHub. It resets tracked files to GitHub state but does not delete unrelated untracked local skill folders unless the user separately asks for an exact clean mirror.
+Important: overwrite mode is allowed only for this personal skills repository when the user explicitly asks to pull/overwrite local skills from GitHub. It resets tracked files to the selected GitHub Tag state but does not delete unrelated untracked local skill folders unless the user separately asks for an exact clean mirror.
 
 ## Guardrails
 
@@ -56,6 +61,8 @@ Important: overwrite mode is allowed only for this personal skills repository wh
 - Preserve the repository's existing `.gitignore` allowlist pattern.
 - Prefer repository-local Git proxy settings copied from Windows system proxy, so browser-accessible GitHub also works for Git push/pull.
 - If authentication fails during push or pull, report the exact blocker and leave local files intact.
+- If GitHub Release creation fails because `gh`, `GH_TOKEN`, and `GITHUB_TOKEN` are unavailable, report that the commit and Tag push status separately from the Release blocker.
+- Never pull a Tag without showing available Tags and asking the user to select one, unless the user already provided an explicit Tag in the same request.
 
 ## Common Commands
 
@@ -63,6 +70,12 @@ Commit and push with an inferred message:
 
 ```powershell
 & "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1"
+```
+
+Commit, push, Tag, and create a Release with an explicit Tag:
+
+```powershell
+& "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1" -TagName "skills-v20260518-120000"
 ```
 
 Commit and push with a supplied message:
@@ -80,5 +93,6 @@ Include a newly created skill folder in the allowlist:
 Download from GitHub and overwrite tracked local skill files:
 
 ```powershell
-& "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1" -Mode Pull -Overwrite
+& "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1" -ListTags
+& "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1" -Mode Pull -Overwrite -TagName "skills-v20260518-120000"
 ```
