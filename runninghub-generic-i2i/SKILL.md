@@ -28,7 +28,7 @@ Common parameters:
 | `-Prompt` | yes | Text prompt. Chinese or English is fine. |
 | `-OutputPath` | no | Output file path. Defaults to desktop. |
 | `-AspectRatio` | no | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`; default `4:5`. |
-| `-Resolution` | no | Defaults to `2k`; use `1k` for faster/lower-cost checks or `4k` for high-resolution output when the workflow supports it. |
+| `-Resolution` | no | Supports `1k`, `2k`, and `4k`; defaults to `2k`. |
 | `-Quality` | no | Optional if workflow exposes `quality`. |
 | `-Seed` | no | Optional if workflow exposes `seed`. |
 | `-ImageNodeIds` | no | Manual image LoadImage node IDs in order. |
@@ -55,8 +55,8 @@ Common parameters:
 ## Rules
 
 - Prefer auto-discovery first for unknown workflows. Use manual node parameters only when auto-detection picks the wrong nodes.
-- Default to `-Resolution 2k` unless the user asks for `1k` or `4k`.
-- Verified workflow `2047956784060567554` supports `1k`, `2k`, and `4k`; use `2k` as the normal default for this workflow.
+- `-Resolution` supports `1k`, `2k`, and `4k`; use `2k` as the normal default when the user does not specify a resolution.
+- Verified workflow `2047956784060567554` supports `1k`, `2k`, and `4k`.
 - Treat polling status deterministically:
   - `SUCCESS`: stop polling, fetch the result URL, download the image, and report `TASK_ID`, `STATUS=SUCCESS`, `OUTPUT_PATH`, and `IMAGE_URL`.
   - `FAILED`: stop immediately, report `TASK_ID`, `STATUS=FAILED`, and include the returned `failedReason` when available.
