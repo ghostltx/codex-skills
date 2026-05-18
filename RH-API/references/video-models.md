@@ -1,6 +1,15 @@
 # Video Model Selection
 
-**Whenever** the user wants ANY video (text-to-video OR image-to-video), you MUST show this menu and WAIT:
+Default video generation route:
+
+- If the user asks for video generation and does not name a specific video model, automatically use **Seedance 2.0**.
+- Do not show the model menu in the default case.
+- Text-to-video default endpoint: `rhart-video/sparkvideo-2.0/text-to-video`.
+- Image-to-video default endpoint: `rhart-video/sparkvideo-2.0/image-to-video`.
+- Multimodal image/video/audio references default endpoint: `rhart-video/sparkvideo-2.0/multimodal-video`.
+- Seedance 2.0 supports up to 15 seconds, optional auto audio, real-person mode, and up to 4K. Use user-specified duration/resolution when provided; otherwise use the smart defaults below.
+
+Show this menu and WAIT only when the user asks to choose a model, asks what video models are available, or explicitly wants model options:
 
 > 好的！先帮你选个最合适的视频模型～
 >
@@ -13,7 +22,7 @@
 > 7. 🌊 **海螺 Hailuo** — 速度快画面细腻，适合创意类内容
 > 8. 🌱 **Seedance 2.0** — 效果超赞！最长15秒+自动配音+支持真人，最高4K，价格偏高
 >
-> 说个数字就行～ 不选的话我默认用 🚀全能视频V3.1 Fast 哦！
+> 说个数字就行～ 不选的话我默认用 🌱Seedance 2.0 哦！
 
 **⚠️ STRICT RULES — violation will cause bad user experience:**
 1. **Copy-paste** the menu above EXACTLY as-is. Do NOT rewrite, rephrase, rename, or reorder it.
@@ -34,32 +43,32 @@ After user replies, map choice → endpoint:
 **Text-to-video** (no image):
 | # | Endpoint |
 |---|----------|
-| 1 (default) | `rhart-video-v3.1-fast/text-to-video` |
+| 1 | `rhart-video-v3.1-fast/text-to-video` |
 | 2 | `rhart-video-g/text-to-video` |
 | 3 | `kling-v3.0-pro/text-to-video` |
 | 4 | `rhart-video-v3.1-pro/text-to-video` |
 | 5 | `vidu/text-to-video-q3-pro` |
 | 6 | `rhart-video-s/text-to-video` |
 | 7 | `minimax/hailuo-02/t2v-pro` |
-| 8 | `rhart-video/sparkvideo-2.0/text-to-video` |
+| 8 (default) | `rhart-video/sparkvideo-2.0/text-to-video` |
 
 **Image-to-video** (user has image):
 | # | Endpoint |
 |---|----------|
-| 1 (default) | `rhart-video-v3.1-fast/image-to-video` |
+| 1 | `rhart-video-v3.1-fast/image-to-video` |
 | 2 | `rhart-video-g/image-to-video` |
 | 3 | `kling-v3.0-pro/image-to-video` |
 | 4 | `rhart-video-v3.1-pro/image-to-video` |
 | 5 | `vidu/image-to-video-q3-pro` |
 | 6 | `rhart-video-s/image-to-video` |
 | 7 | `minimax/hailuo-2.3-fast/image-to-video` |
-| 8 | `rhart-video/sparkvideo-2.0/image-to-video` |
+| 8 (default) | `rhart-video/sparkvideo-2.0/image-to-video` |
 
 ## Matching Rules
 
 - Number 1-8 → use that model
 - Partial name ("可灵", "海螺", "全能", "万相", "Grok", "Seedance", "种子") → match
-- "随便" / "你选" / "默认" → choice 1
+- "随便" / "你选" / "默认" → choice 8
 - "最快的" / "便宜的" → choice 1
 - "万相" → use `alibaba/wan-2.6/text-to-video` or `alibaba/wan-2.6/image-to-video-flash`
 - "效果最好的" / "创意最好的" → choice 2 (全能X) or 3 (可灵) or 8 (Seedance 2.0)
@@ -67,7 +76,7 @@ After user replies, map choice → endpoint:
 - "多模态" / "图片+视频" → use multimodal endpoint: `rhart-video/sparkvideo-2.0/multimodal-video`
 - Real people in image → recommend choice 3 (可灵) or 8 (Seedance 2.0, also supports real people)
 
-Skip menu ONLY if: user named a specific model, or said "跟上次一样" / "再来一个".
+Skip menu if: user did not ask to choose a model, user named a specific model, or user said "跟上次一样" / "再来一个".
 
 ## After Model Is Chosen
 
@@ -77,7 +86,7 @@ Skip menu ONLY if: user named a specific model, or said "跟上次一样" / "再
 This is critical — video generation takes 1-5 minutes and users need to know the task has started. Send the notification FIRST, then execute the script.
 
 Confirm the choice warmly, then ask for missing info if needed:
-> "好嘞，用可灵 v3.0 Pro！视频时长要多久？默认 5 秒，也可以选 10 秒～"
+> "好嘞，用 Seedance 2.0！视频时长要多久？默认 5 秒，也可以选到 15 秒～"
 
 Smart defaults (use these if user doesn't specify):
 - Duration: 5s for text-to-video, 5s for image-to-video

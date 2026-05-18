@@ -1,6 +1,15 @@
 # Image Model Selection
 
-**Whenever** the user wants ANY image generation (text-to-image OR image-edit/image-to-image), you MUST show this menu and WAIT:
+Default image generation route:
+
+- If the user asks for image generation or image-to-image and does not name a specific model, automatically use **GPT Image 2**.
+- Do not show the model menu in the default case.
+- Use the low-price GPT Image 2 endpoints: `rhart-image-g-2/text-to-image` for text-to-image and `rhart-image-g-2/image-to-image` for image-to-image.
+- If the low-price GPT Image 2 endpoint fails because of rate limit, timeout, unknown error, overload, queue pressure, or any other recoverable API/runtime issue, retry the same low-price endpoint up to **2 attempts total**.
+- After 2 failed attempts, stop and tell the user what happened. Do **not** automatically switch to `rhart-image-g-2-official/*` or any other official/stable expensive endpoint.
+- Only use an official/stable expensive endpoint when the user explicitly asks for it after being told the low-price endpoint failed.
+
+Show this menu and WAIT only when the user asks to choose a model, asks what image models are available, or explicitly wants model options:
 
 > 好的！先帮你选个图片模型～
 >
@@ -10,7 +19,7 @@
 > 4. 🤖 **GPT Image 2** — GPT image2 同款，语义理解强，改图也很稳
 > 5. 📷 **Seedream v5** — 字节跳动出品，写实照片感超强
 >
-> 说个数字就行～ 不选的话我默认用 🎨全能图片PRO 哦！
+> 说个数字就行～ 不选的话我默认用 🤖GPT Image 2 哦！
 
 **Do NOT invent your own model list. Do NOT skip this menu. Use EXACTLY this 5-model list.**
 
@@ -19,19 +28,19 @@ After user replies, map choice → endpoint:
 **Text-to-image** (no source image):
 | # | Endpoint |
 |---|----------|
-| 1 (default) | `rhart-image-n-pro/text-to-image` |
+| 1 | `rhart-image-n-pro/text-to-image` |
 | 2 | `rhart-image-n-g31-flash/text-to-image` |
 | 3 | `youchuan/text-to-image-v7` |
-| 4 | `rhart-image-g-2/text-to-image` |
+| 4 (default) | `rhart-image-g-2/text-to-image` |
 | 5 | `seedream-v5-lite/text-to-image` |
 
 **Image-to-image / Image edit** (user has source image):
 | # | Endpoint |
 |---|----------|
-| 1 (default) | `rhart-image-n-pro/edit` |
+| 1 | `rhart-image-n-pro/edit` |
 | 2 | `rhart-image-n-g31-flash/image-to-image` |
 | 3 | `rhart-image-n-pro/edit` ⚠️ 悠船无图生图，回退到全能PRO |
-| 4 | `rhart-image-g-2/image-to-image` |
+| 4 (default) | `rhart-image-g-2/image-to-image` |
 | 5 | `seedream-v5-lite/image-to-image` |
 
 When user picks 悠船 (3) for image-to-image, tell them warmly:
@@ -44,16 +53,16 @@ When user picks 悠船 (3) for image-to-image, tell them warmly:
 - "悠船" / "Midjourney" / "MJ" → #3
 - "GPT Image" / "GPT image2" / "GPT Image 2" / "G-2" → #4
 - "Seedream" / "种子" / "写实" / "照片" → #5
-- "随便" / "你选" / "默认" → #1
+- "随便" / "你选" / "默认" → #4
 - "最快的" / "便宜的" → #2
 - "效果最好的" → #1
 
-Skip menu ONLY if: user named a specific model, or said "跟上次一样" / "再来一个".
+Skip menu if: user did not ask to choose a model, user named a specific model, or user said "跟上次一样" / "再来一个".
 
 ## After Model Is Chosen
 
 Confirm the choice warmly, then ask for missing info if needed:
-> "好嘞，用全能图片PRO！有什么画面要求吗？比如风格、尺寸、画质～"
+> "好嘞，用 GPT Image 2！有什么画面要求吗？比如风格、尺寸、画质～"
 
 Smart defaults (use these if user doesn't specify):
 - Resolution: 2k
