@@ -1,60 +1,60 @@
-# Personal Codex Skills
+# 个人 Codex Skills
 
-This repository stores personal Codex skills and version tags for rollback.
+这个仓库用于保存个人 Codex skills，并通过版本 Tag 支持回滚和跨设备同步。
 
-## Version Notes
+## 版本说明
 
 ### v1.03
 
-`v1.03` upgrades the personal skills sync workflow with versioned releases:
+`v1.03` 升级了个人 skills 同步流程，重点是加入版本化发布能力：
 
-- Upload/sync now creates a version Tag, pushes it to GitHub, and creates a GitHub Release from that Tag.
-- Download/pull now lists remote Tags first and requires selecting a Tag version before overwriting tracked local skill files.
-- Added script options:
-  - `-TagName` for explicit version Tags.
-  - `-ListTags` for remote Tag discovery.
-  - `-ReleaseTitle` and `-ReleaseNotes` for Release metadata.
-- Release creation uses `gh` when available, otherwise falls back to the GitHub API through `GH_TOKEN` or `GITHUB_TOKEN`.
-- Tag pulls use isolated remote Tag refs so stale local Tags cannot block version selection.
+- 上传/同步时会创建版本 Tag、推送到 GitHub，并基于该 Tag 创建 GitHub Release。
+- 下载/拉取时会先列出远端 Tag，并要求选择一个 Tag 版本后，再覆盖本地已跟踪的 skill 文件。
+- 新增脚本参数：
+  - `-TagName`：指定明确的版本 Tag。
+  - `-ListTags`：列出远端 Tag，便于选择下载版本。
+  - `-ReleaseTitle` 和 `-ReleaseNotes`：设置 GitHub Release 的标题和说明。
+- 创建 Release 时优先使用 `gh`；如果本机没有 `gh`，则通过 `GH_TOKEN` 或 `GITHUB_TOKEN` 调用 GitHub API。
+- 按 Tag 拉取时使用隔离的远端 Tag 引用，避免本地旧 Tag 与远端同名 Tag 冲突导致无法选择版本。
 
-In short, `v1.03` makes skills sync version-aware: uploads become tagged releases, and downloads become deliberate version restores.
+简而言之，`v1.03` 让 skills 同步具备版本意识：上传会变成带 Tag 的 Release，下载会变成明确选择版本后的恢复。
 
 ### v1.01
 
-`v1.01` is based on `v1.0` and contains one update commit:
+`v1.01` 基于 `v1.0`，包含一次更新提交：
 
-- Commit: `cb3b57c` - `Update personal skills for v1.01`
-- Changed files:
+- 提交：`cb3b57c` - `Update personal skills for v1.01`
+- 变更文件：
   - `amazon-plus-1.0/SKILL.md`
   - `fantui/SKILL.md`
-- Diff size:
-  - `41` insertions
-  - `12` deletions
+- Diff 规模：
+  - `41` 行新增
+  - `12` 行删除
 
 #### amazon-plus-1.0
 
-- Expanded generation routing from two modes to four modes:
-  - `A` = built-in Image Gen
+- 将生图路由从两种模式扩展为四种模式：
+  - `A` = 内置 Image Gen
   - `B` = RunningHub RH-GPT-IMAGE-2-I2I
   - `C` = ZZ gpt-image-2 / T8Star
   - `D` = RunningHub GPT Image 2 Official Stable
-- Added explicit support for `ZZ gpt-image-2` / `T8Star`.
-- Added explicit support for RunningHub GPT Image 2 Official Stable.
-- Updated resolution routing:
-  - `1K` routes to Mode A
-  - `2K` routes to Mode B unless Mode D is explicitly selected
-  - `4K` routes to Mode D
-  - `ZZ`, `gpt-image-2`, or `T8Star` routes to Mode C
+- 增加对 `ZZ gpt-image-2` / `T8Star` 的明确支持。
+- 增加对 RunningHub GPT Image 2 Official Stable 的明确支持。
+- 更新分辨率路由规则：
+  - `1K` 路由到模式 A
+  - `2K` 默认路由到模式 B，除非明确选择模式 D
+  - `4K` 路由到模式 D
+  - `ZZ`、`gpt-image-2` 或 `T8Star` 路由到模式 C
 
 #### fantui
 
-- Changed the default detail-page image ratio from `3:4` to `1:1`.
-- Added a required `【亚马逊5大点】` section.
-- Requires the 10-screen detail-page plan to echo and visualize the Amazon 5 bullet points.
-- Strengthened line-art constraint wording so prompts must preserve product silhouette, proportions, and physical volume.
+- 将详情页图片默认比例从 `3:4` 改为 `1:1`。
+- 新增必填的 `【亚马逊5大点】` 区块。
+- 要求 10 屏详情页方案回应并视觉化亚马逊五点描述。
+- 强化线稿约束措辞，要求提示词保留产品轮廓、比例和物理体积。
 
-In short, `v1.01` improves Amazon image-generation routing across multiple providers and makes Fantui output better aligned with Amazon square images and listing bullet-point logic.
+简而言之，`v1.01` 改进了 Amazon 图片生成在多供应商之间的路由，并让 Fantui 输出更适配 Amazon 方图和五点描述逻辑。
 
 ### v1.0
 
-Baseline uploaded version before the `v1.01` updates.
+`v1.0` 是 `v1.01` 更新之前的基线上传版本。
