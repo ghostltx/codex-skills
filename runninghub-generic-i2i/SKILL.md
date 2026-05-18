@@ -52,6 +52,28 @@ Common parameters:
 7. If `query.results` is empty, try `/task/openapi/outputs`.
 8. Download the first result URL to `-OutputPath`.
 
+## Cost Reporting
+
+When generation finishes, inspect the final query/output response for usage data and report the cost to the user.
+
+Use the same convention as the main `runninghub` skill:
+
+```powershell
+$usage = $finalResponse.usage
+$consumeMoney = $usage.consumeMoney
+if ($null -eq $consumeMoney) { $consumeMoney = $usage.thirdPartyConsumeMoney }
+if ($null -ne $consumeMoney) {
+    Write-Host "COST:¥$consumeMoney"
+}
+```
+
+Agent delivery rule:
+
+- If the script output includes `COST:¥X`, include it naturally in the final user-facing response as `花了 ¥X`.
+- For successful image results, report the fee together with the result status, e.g. `生成完成，花了 ¥0.50`.
+- Do not invent or estimate cost when no `usage.consumeMoney`, `usage.thirdPartyConsumeMoney`, or `COST:` value is available.
+- If duration is available as `DURATION:Ns`, it may be reported as `耗时 Ns`, but cost is the priority.
+
 ## Rules
 
 - Prefer auto-discovery first for unknown workflows. Use manual node parameters only when auto-detection picks the wrong nodes.

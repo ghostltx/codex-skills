@@ -105,6 +105,27 @@ function Remove-TempCopies {
     }
 }
 
+function Get-UsageInfo {
+    param($Response)
+    $cost = $null
+    $duration = $null
+    if ($Response -and $Response.PSObject.Properties["usage"]) {
+        $usage = $Response.PSObject.Properties["usage"].Value
+        if ($usage) {
+            if ($usage.PSObject.Properties["consumeMoney"]) {
+                $cost = $usage.PSObject.Properties["consumeMoney"].Value
+            }
+            if (($null -eq $cost -or "$cost" -eq "") -and $usage.PSObject.Properties["thirdPartyConsumeMoney"]) {
+                $cost = $usage.PSObject.Properties["thirdPartyConsumeMoney"].Value
+            }
+            if ($usage.PSObject.Properties["taskCostTime"]) {
+                $duration = $usage.PSObject.Properties["taskCostTime"].Value
+            }
+        }
+    }
+    return @{ Cost = $cost; Duration = $duration }
+}
+
 function Get-WorkflowNodes {
     param([Parameter(Mandatory = $true)][string]$WorkflowId)
     $body = @{ apiKey = $ApiKey; workflowId = $WorkflowId } | ConvertTo-Json
@@ -214,12 +235,16 @@ function Write-Result {
         [string]$TaskId,
         [string]$Status,
         [string]$OutputPath = "",
-        [string]$ImageUrl = ""
+        [string]$ImageUrl = "",
+        $Cost = $null,
+        $Duration = $null
     )
     Write-Host "TASK_ID=$TaskId"
     Write-Host "STATUS=$Status"
     if ($OutputPath) { Write-Host "OUTPUT_PATH=$OutputPath" }
     if ($ImageUrl) { Write-Host "IMAGE_URL=$ImageUrl" }
+    if ($null -ne $Cost -and "$Cost" -ne "") { Write-Host "COST:¥$Cost" }
+    if ($null -ne $Duration -and "$Duration" -ne "" -and "$Duration" -ne "0") { Write-Host "DURATION:${Duration}s" }
 }
 
 if ($ImagePaths.Count -lt 1) {
@@ -403,9 +428,10 @@ foreach ($delay in $PollDelays) {
     }
 
     Write-Host "Status: $($queryResponse.status)"
+    $usageInfo = Get-UsageInfo -Response $queryResponse
     if ($queryResponse.status -eq "FAILED") {
         Write-Error "Task failed: $($queryResponse.failedReason | ConvertTo-Json -Depth 5 -Compress)"
-        Write-Result -TaskId $taskId -Status "FAILED"
+        Write-Result -TaskId $taskId -Status "FAILED" -Cost $usageInfo.Cost -Duration $usageInfo.Duration
         exit 1
     }
     if ($queryResponse.status -ne "SUCCESS") { continue }
@@ -436,7 +462,7 @@ foreach ($delay in $PollDelays) {
 
     if ([string]::IsNullOrWhiteSpace($resultUrl)) {
         Write-Error "Task succeeded but no image URL was returned."
-        Write-Result -TaskId $taskId -Status "SUCCESS_NO_URL"
+        Write-Result -TaskId $taskId -Status "SUCCESS_NO_URL" -Cost $usageInfo.Cost -Duration $usageInfo.Duration
         exit 1
     }
 
@@ -446,14 +472,14 @@ foreach ($delay in $PollDelays) {
         } | Out-Null
     } catch {
         Write-Error "Download failed: $_"
-        Write-Result -TaskId $taskId -Status "SUCCESS_DOWNLOAD_FAILED" -ImageUrl $resultUrl
+        Write-Result -TaskId $taskId -Status "SUCCESS_DOWNLOAD_FAILED" -ImageUrl $resultUrl -Cost $usageInfo.Cost -Duration $usageInfo.Duration
         exit 1
     }
 
     $file = Get-Item -LiteralPath $OutputPath
     $sizeMb = [math]::Round(($file.Length / 1MB), 2)
     Write-Host "Done: $OutputPath ($sizeMb MB)"
-    Write-Result -TaskId $taskId -Status "SUCCESS" -OutputPath $OutputPath -ImageUrl $resultUrl
+    Write-Result -TaskId $taskId -Status "SUCCESS" -OutputPath $OutputPath -ImageUrl $resultUrl -Cost $usageInfo.Cost -Duration $usageInfo.Duration
     exit 0
 }
 
