@@ -26,5 +26,7 @@ zz-gpt-image2-T2I/scripts/.env
 !amazon-recolor/**
 !new-api-rim-gpt-image-2-only-1k/
 !new-api-rim-gpt-image-2-only-1k/**
+!runninghub-generic-i2i/
+!runninghub-generic-i2i/**
 !runninghub-generic-t2i/
 !runninghub-generic-t2i/**
