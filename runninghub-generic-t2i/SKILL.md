@@ -70,7 +70,8 @@ Common parameters:
   - `SUCCESS_NO_URL`: the task completed but no API-visible image URL was returned. Inspect workflow output/save-image exposure before rerunning.
   - `SUCCESS_DOWNLOAD_FAILED`: the task completed and returned a URL, but local download failed. Preserve `IMAGE_URL` and retry download instead of regenerating.
 - Use unique output paths for parallel jobs.
-- For batch generation, keep at most 3 unfinished RunningHub tasks at the same time.
+- Only run up to 3 unfinished RunningHub T2I tasks in parallel. For larger batches, use a rolling window of 3: start at most 3 tasks, then submit the next task only after one finishes with `SUCCESS` or `FAILED`.
+- Do not submit 4 or more T2I tasks at the same time. If a task reaches local `TIMEOUT` while still running, it still occupies one of the 3 parallel slots until it reaches `SUCCESS` or `FAILED`.
 - If `TASK_QUEUE_MAXED` appears, reduce concurrency or stagger task creation by 8-15 seconds.
 
 ## Reference

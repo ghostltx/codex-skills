@@ -66,6 +66,8 @@ Common parameters:
   - `SUCCESS_DOWNLOAD_FAILED`: the task completed and returned a URL, but local download failed. Preserve `IMAGE_URL` and retry download instead of regenerating.
 - For workflows with unused image slots, explicitly pass empty strings to remaining detected image nodes to prevent default `example.png` references from affecting generation.
 - Use unique output paths for parallel jobs.
+- Only run up to 3 unfinished RunningHub I2I tasks in parallel. For larger batches, use a rolling window of 3: start at most 3 tasks, then submit the next task only after one finishes with `SUCCESS` or `FAILED`.
+- Do not submit 4 or more I2I tasks at the same time. If a task reaches local `TIMEOUT` while still running, it still occupies one of the 3 parallel slots until it reaches `SUCCESS` or `FAILED`.
 - For 3-way parallel jobs, create per-task temp copies or let the script do it; do not make multiple upload processes read the same original file directly.
 - If the task returns `SUCCESS_NO_URL`, the workflow likely lacks an API-visible Save Image output or RunningHub is not exposing outputs for that workflow. In that case, inspect the workflow JSON and RunningHub web workflow output settings.
 - If `TASK_QUEUE_MAXED` appears, reduce concurrency or stagger task creation by 8-15 seconds.
