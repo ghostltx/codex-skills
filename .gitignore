@@ -30,3 +30,7 @@ zz-gpt-image2-T2I/scripts/.env
 !runninghub-generic-i2i/**
 !runninghub-generic-t2i/
 !runninghub-generic-t2i/**
+!RH-API/
+!RH-API/**
+RH-API/**/__pycache__/
+RH-API/**/*.pyc
