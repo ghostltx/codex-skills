@@ -1,0 +1,4 @@
+interface:
+  display_name: "爆款图片"
+  short_description: "识别爆款参考图并用 RH I2I 生成电商图像"
+  default_prompt: "Use $baokuan-tupian with my bestseller reference image and white-background product image to identify the product, extract all visible text, create an ecommerce prompt, and generate the image with RH I2I."

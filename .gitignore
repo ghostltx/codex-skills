@@ -32,3 +32,5 @@ zz-gpt-image2-T2I/scripts/.env
 !RH-API/**
 RH-API/**/__pycache__/
 RH-API/**/*.pyc
+!baokuan-tupian/
+!baokuan-tupian/**
