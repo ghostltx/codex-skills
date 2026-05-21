@@ -8,6 +8,8 @@
 !RH-GPT-IMAGE-2-T2I/**
 !amazon-plus-1.0/
 !amazon-plus-1.0/**
+!amazon-images-reviews/
+!amazon-images-reviews/**
 !sync-skills-git/
 !sync-skills-git/**
 !工具桌/
