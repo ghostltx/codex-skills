@@ -7,6 +7,14 @@ description: Use when the user provides an Amazon ASIN or product page URL and a
 
 Use this skill for Amazon product-page extraction and ASIN collection packages.
 
+## User-Facing Opening
+
+When this skill is invoked, the first user-facing progress reply must end with this exact phrase:
+
+```text
+👌月婷请稍等⏳
+```
+
 ## Default Behavior
 
 - Input: one Amazon ASIN or product page URL.
@@ -18,6 +26,8 @@ Use this skill for Amazon product-page extraction and ASIN collection packages.
   - Typical valid A+ image size is around `1460x600`.
   - Do not save small icons, thumbnails, square images, comparison-table badges, spacer images, or other small A+ assets.
 - Reviews: export full SellerSprite reviews to Excel as `<ASIN>-reviews.xlsx` when a SellerSprite secret key is available.
+- On successful SellerSprite review export, report the SellerSprite MCP review call count.
+- Do not create manifest JSON files by default.
 - Do not save image link TXT/CSV files unless the user explicitly asks.
 - Do not download hidden variant galleries, recommendation images, comparison images, or unrelated page assets.
 - If SellerSprite is unavailable, optionally export accessible embedded product-page reviews and label them as partial.
@@ -37,8 +47,9 @@ Use this skill for Amazon product-page extraction and ASIN collection packages.
    - Require width greater than height, so square images such as `2000x2000` are not treated as A+ banners.
    - Treat small images as noise even if they are inside the A+ container.
 6. Fetch all SellerSprite reviews through direct MCP HTTP `tools/call` and export them to Excel.
-7. Save a manifest JSON with counts, source URLs, and output paths.
-8. If SellerSprite is not authorized or missing a key, continue image export and report the review blocker.
+   - Count one MCP call for each `review` tool page request.
+   - Include the MCP call count in the terminal success JSON and in the Excel `Summary` sheet.
+7. If SellerSprite is not authorized or missing a key, continue image export and report the review blocker.
 
 ## Recommended Script
 
@@ -64,10 +75,9 @@ C:\Users\ghost\Desktop\<ASIN>\
   main-images\
   aplus-images\
   <ASIN>-reviews.xlsx
-  <ASIN>-manifest.json
 ```
 
-Use `--skip-reviews` for image-only collection, `--skip-aplus` for gallery-only collection, and `--max-review-pages` for a quick review sample.
+Use `--skip-reviews` for image-only collection, `--skip-aplus` for gallery-only collection, `--max-review-pages` for a quick review sample, and `--save-manifest` only when the user explicitly asks for a manifest.
 
 ## Legacy Script
 

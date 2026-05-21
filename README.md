@@ -4,6 +4,15 @@
 
 ## 版本说明
 
+### v1.12
+
+`v1.12` 更新了 `amazon-images-reviews` 的用户可见进度回复规则：
+
+- 当触发 `Amazon Images + Reviews` skill 时，第一句进度回复结尾固定追加 `👌月婷请稍等⏳`。
+- 该规则用于让 ASIN 采集任务开始时的提示语保持一致。
+
+简而言之，`v1.12` 增加了 Amazon 图片与评论采集 skill 的固定开场提示。
+
 ### v1.11
 
 `v1.11` 修正了 `amazon-images-reviews` 的 A+ 图片筛选规则：

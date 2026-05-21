@@ -59,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--secret-key", help="SellerSprite secret key. Prefer environment variables.")
     parser.add_argument("--mcp-url", default=MCP_URL, help=f"SellerSprite MCP endpoint. Default: {MCP_URL}")
     parser.add_argument("--save-links", action="store_true", help="Save image URL link lists.")
+    parser.add_argument("--save-manifest", action="store_true", help="Save <ASIN>-manifest.json. Default: false.")
     args = parser.parse_args()
     if args.max_review_pages < 1:
         parser.error("--max-review-pages must be >= 1")
@@ -369,6 +370,7 @@ def normalize_review(item: dict[str, Any]) -> dict[str, Any]:
 def fetch_all_reviews(args: argparse.Namespace, asin: str, secret_key: str) -> dict[str, Any]:
     all_items: list[dict[str, Any]] = []
     first_data: dict[str, Any] | None = None
+    mcp_call_count = 0
     for page in range(1, args.max_review_pages + 1):
         response = call_review_tool(
             secret_key,
@@ -376,6 +378,7 @@ def fetch_all_reviews(args: argparse.Namespace, asin: str, secret_key: str) -> d
             {"marketplace": args.marketplace, "asin": asin, "page": page, "size": 10},
             page,
         )
+        mcp_call_count += 1
         if response.get("code") != "OK":
             raise RuntimeError(f"SellerSprite review error: {response.get('code')} {response.get('message', '')}")
         data = response.get("data") or {}
@@ -397,6 +400,7 @@ def fetch_all_reviews(args: argparse.Namespace, asin: str, secret_key: str) -> d
             "apiTotal": first_data.get("total") if first_data else None,
             "apiPages": first_data.get("pages") if first_data else None,
             "provider": "sellersprite-mcp",
+            "mcpCallCount": mcp_call_count,
         },
         "items": all_items,
     }
@@ -461,6 +465,7 @@ def write_reviews_excel(path: Path, result: dict[str, Any]) -> None:
         ("API Total", meta.get("apiTotal")),
         ("API Pages", meta.get("apiPages")),
         ("Provider", meta.get("provider")),
+        ("MCP Review Calls", meta.get("mcpCallCount")),
     ]:
         summary.append(row)
     for cell in summary["A"]:
@@ -504,6 +509,7 @@ def main() -> int:
     review_path = None
     review_error = None
     review_count = 0
+    mcp_call_count = 0
     if not args.skip_reviews:
         secret_key = get_secret_key(args.secret_key)
         if not secret_key:
@@ -512,6 +518,7 @@ def main() -> int:
             try:
                 reviews = fetch_all_reviews(args, asin, secret_key)
                 review_count = len(reviews["items"])
+                mcp_call_count = reviews["metadata"].get("mcpCallCount") or 0
                 review_path = out_dir / f"{asin}-reviews.xlsx"
                 write_reviews_excel(review_path, reviews)
             except Exception as exc:
@@ -530,10 +537,12 @@ def main() -> int:
         "aplusImages": aplus_rows,
         "reviewsExcel": str(review_path) if review_path else None,
         "reviewCount": review_count,
+        "mcpReviewCalls": mcp_call_count,
         "reviewError": review_error,
     }
-    manifest_path = out_dir / f"{asin}-manifest.json"
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    if args.save_manifest:
+        manifest_path = out_dir / f"{asin}-manifest.json"
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(manifest, ensure_ascii=False))
     return 0
 
