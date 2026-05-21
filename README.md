@@ -4,6 +4,40 @@
 
 ## 版本说明
 
+### v1.07
+
+`v1.07` 修正了 `v1.06` 的同步范围问题，让仓库重新回到“只保存个人自建 skill”的边界：
+
+- 从 Git 跟踪中移除了误上传的 OMX / 系统类 skill，例如 `analyze`、`team`、`creator-image2ppt` 等。
+- 保留本地这些 skill 文件，不删除本机可用能力，只是不再纳入 `ghostltx/codex-skills` 仓库。
+- 恢复 `.gitignore` 白名单，只保留个人仓库需要同步的 skill。
+- 修正 `sync-skills-git` 规则：普通“同步”不再自动扫描所有包含 `SKILL.md` 的本地目录并加入白名单。
+- 保留 `sync-skills-git` 的版本发布改进：默认使用递增的 `v1.xx` Tag，并可用 Git Credential Manager 凭据创建 Release。
+
+简而言之，`v1.07` 是一次边界修复：仓库只同步个人 skill，不同步安装进本机的系统/OMX skill。
+
+### v1.06
+
+`v1.06` 尝试增强同步流程，但同步范围过宽：
+
+- 修改 `sync-skills-git`，让默认同步使用 `v1.xx` 递增版本 Tag，而不是时间戳 Tag。
+- 增加使用 Git Credential Manager 凭据创建 GitHub Release 的能力，解决没有 `gh` 或环境变量 token 时无法创建 Release 的问题。
+- 误把所有本地包含 `SKILL.md` 的 ignored 目录自动加入 `.gitignore` 白名单，导致一批非个人 skill 被上传到仓库。
+
+简而言之，`v1.06` 的版本发布方向是对的，但自动白名单规则过宽，已在 `v1.07` 修正。
+
+### v1.05
+
+`v1.05` 增加了 Amazon 产品图片提取相关能力，并补齐同步仓库中缺失的个人 skill：
+
+- 新增 `amazon-images-reviews` skill。
+- 支持从 Amazon 商品链接提取当前变体主图。
+- 支持从页面 A+ 内容区域提取大尺寸 `premium-aplus` 图片。
+- 明确 A+ 过滤规则：优先 `id="aplus"` 容器，保留 `premium-aplus` 大图，排除 `brand-story` / `apm-brand-story`。
+- 要求产品图片目录只保存最终图片；manifest、链接表等中间文件如果必须生成，应放入临时目录。
+
+简而言之，`v1.05` 让仓库包含 Amazon 主图和 A+ 图片提取 workflow。
+
 ### v1.04
 
 `v1.04` 将仓库 README 改为中文，并补齐历史版本说明的中文描述：
