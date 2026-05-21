@@ -18,6 +18,7 @@ https://github.com/ghostltx/codex-skills.git
 This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 
 - When the user says `同步`, treat it as "sync local personal skills to the GitHub repository": first make sure any user-named or newly created personal skill folder is in the repository allowlist, then upload/push local personal skill changes to GitHub, create the next `v1.xx` version Tag, push the Tag, and create a GitHub Release from that Tag.
+- When syncing skill updates, update `README.md` version notes before publishing so the repository homepage explains what changed. Only skip this when the user explicitly says not to update README.
 - When the user says `拉取`, list available version Tags first, ask the user which Tag to download, then overwrite tracked local personal skill files from that Tag.
 - Do not apply this shorthand to any other repository or normal project workspace.
 
@@ -29,13 +30,14 @@ This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 4. If Git has no local proxy but Windows system proxy is enabled, copy the Windows proxy into the repository's `http.proxy` and `https.proxy` settings before network operations.
 5. Before staging, update the repository root `.gitignore` allowlist only for personal skill folders that should sync. If the user names a specific new skill, pass `-SkillName` for that skill explicitly. Do not broadly auto-allowlist every ignored folder with `SKILL.md`, because this can upload installed system/OMX skills that are not part of the user's personal repository.
 6. Re-check `git status --short --ignored` after allowlist updates so newly included skill files are visible before staging.
-7. Stage only repository-managed skill files and Git metadata.
-8. Commit when there are staged changes.
-9. Push the current branch to `origin`.
-10. Create a version Tag for the pushed HEAD. If the user gave a Tag name, pass it with `-TagName`; otherwise let the script create the next `v1.xx` Tag after the highest existing version Tag.
-11. Push the Tag to `origin`.
-12. Create a GitHub Release based on that Tag. The script uses `gh` when available, otherwise `GH_TOKEN`, `GITHUB_TOKEN`, or the existing Git Credential Manager token with the GitHub API.
-13. Report the commit hash, branch, Tag, Release result, remote, and whether the working tree is clean.
+7. If any skill, sync rule, or repository behavior changed, update `README.md` with a short entry for the next `v1.xx` release before staging. The README should mention the user-facing change, any correction of a previous release, and relevant sync rules.
+8. Stage only repository-managed skill files, README changes, and Git metadata.
+9. Commit when there are staged changes.
+10. Push the current branch to `origin`.
+11. Create a version Tag for the pushed HEAD. If the user gave a Tag name, pass it with `-TagName`; otherwise let the script create the next `v1.xx` Tag after the highest existing version Tag.
+12. Push the Tag to `origin`.
+13. Create a GitHub Release based on that Tag. The script uses `gh` when available, otherwise `GH_TOKEN`, `GITHUB_TOKEN`, or the existing Git Credential Manager token with the GitHub API.
+14. Report the commit hash, branch, Tag, Release result, remote, and whether the working tree is clean.
 
 Use `scripts/sync-skills-git.ps1` for the normal upload path. Pass `-Message` when the user provides a commit message; otherwise write a concise intent-based message from the changed files.
 If the user provides a Tag, pass `-TagName`. If the user provides Release title or notes, pass `-ReleaseTitle` and `-ReleaseNotes`.
@@ -60,6 +62,7 @@ Important: overwrite mode is allowed only for this personal skills repository wh
 - Do not add installed system/OMX skills unless the user explicitly names them.
 - Do not commit credentials, cache folders, logs, generated images, sessions, or SQLite files.
 - Preserve the repository's existing `.gitignore` allowlist pattern.
+- Keep `README.md` version notes current for every release that changes skill behavior, sync behavior, or repository contents.
 - Prefer repository-local Git proxy settings copied from Windows system proxy, so browser-accessible GitHub also works for Git push/pull.
 - If authentication fails during push or pull, report the exact blocker and leave local files intact.
 - If GitHub Release creation fails because `gh`, `GH_TOKEN`, and `GITHUB_TOKEN` are unavailable, report that the commit and Tag push status separately from the Release blocker.
