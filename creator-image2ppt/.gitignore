@@ -1,4 +1,0 @@
-projects/*
-!projects/.gitkeep
-__pycache__/
-*.pyc

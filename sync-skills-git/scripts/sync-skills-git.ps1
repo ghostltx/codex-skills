@@ -49,41 +49,6 @@ function Add-AllowlistEntry {
     }
 }
 
-function Add-AutoAllowlistEntries {
-    $ignoredSkills = & git -C $RepoPath status --short --ignored --untracked-files=all
-    if ($LASTEXITCODE -ne 0) {
-        throw "git status --ignored failed with exit code $LASTEXITCODE"
-    }
-
-    $ignoredNames = @{}
-    foreach ($line in $ignoredSkills) {
-        if ($line -notmatch "^!!\s+([^/\\]+)/") {
-            continue
-        }
-
-        $name = $Matches[1]
-        if ($ignoredNames.ContainsKey($name)) {
-            continue
-        }
-
-        if ($name.StartsWith(".") -or $name -in @("node_modules", "__pycache__", "cache", "logs", "sessions")) {
-            continue
-        }
-
-        $skillFile = Join-Path (Join-Path $RepoPath $name) "SKILL.md"
-        if (-not (Test-Path -LiteralPath $skillFile -PathType Leaf)) {
-            continue
-        }
-
-        $ignoredNames[$name] = $true
-    }
-
-    foreach ($name in ($ignoredNames.Keys | Sort-Object)) {
-        Add-AllowlistEntry -Name $name
-        Write-Output "Added local skill to .gitignore allowlist: $name"
-    }
-}
-
 function Get-WindowsSystemProxy {
     $settingsPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
     $settings = Get-ItemProperty -LiteralPath $settingsPath -ErrorAction SilentlyContinue
@@ -414,7 +379,6 @@ if ($Mode -eq "Pull") {
     return
 }
 
-Add-AutoAllowlistEntries
 Invoke-Git @("add", ".")
 
 $cached = (& git -C $RepoPath diff --cached --name-only)

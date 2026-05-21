@@ -17,7 +17,7 @@ https://github.com/ghostltx/codex-skills.git
 
 This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 
-- When the user says `同步`, treat it as "sync local personal skills to the GitHub repository": first include local personal skill folders in the repository allowlist, then upload/push local personal skill changes to GitHub, create the next `v1.xx` version Tag, push the Tag, and create a GitHub Release from that Tag.
+- When the user says `同步`, treat it as "sync local personal skills to the GitHub repository": first make sure any user-named or newly created personal skill folder is in the repository allowlist, then upload/push local personal skill changes to GitHub, create the next `v1.xx` version Tag, push the Tag, and create a GitHub Release from that Tag.
 - When the user says `拉取`, list available version Tags first, ask the user which Tag to download, then overwrite tracked local personal skill files from that Tag.
 - Do not apply this shorthand to any other repository or normal project workspace.
 
@@ -27,7 +27,7 @@ This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 2. If the remote is missing, add `origin` using the expected remote URL.
 3. If `origin` points anywhere other than `https://github.com/ghostltx/codex-skills.git`, stop.
 4. If Git has no local proxy but Windows system proxy is enabled, copy the Windows proxy into the repository's `http.proxy` and `https.proxy` settings before network operations.
-5. Before staging, update the repository root `.gitignore` allowlist for local personal skill folders that should sync. For plain `同步`, do this automatically for immediate child folders that contain `SKILL.md` and are not hidden/system/cache folders; if the user names a specific new skill, pass `-SkillName` for that skill explicitly.
+5. Before staging, update the repository root `.gitignore` allowlist only for personal skill folders that should sync. If the user names a specific new skill, pass `-SkillName` for that skill explicitly. Do not broadly auto-allowlist every ignored folder with `SKILL.md`, because this can upload installed system/OMX skills that are not part of the user's personal repository.
 6. Re-check `git status --short --ignored` after allowlist updates so newly included skill files are visible before staging.
 7. Stage only repository-managed skill files and Git metadata.
 8. Commit when there are staged changes.
@@ -93,10 +93,10 @@ Include a newly created skill folder in the allowlist:
 & "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1" -SkillName "my-new-skill"
 ```
 
-Plain `同步` also runs automatic allowlist discovery for immediate local skill folders:
+Plain `同步` uses the existing allowlist. To add a new personal skill during sync, pass the skill folder name explicitly:
 
 ```powershell
-& "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1"
+& "$env:USERPROFILE\.codex\skills\sync-skills-git\scripts\sync-skills-git.ps1" -SkillName "my-new-skill"
 ```
 
 Download from GitHub and overwrite tracked local skill files:

@@ -1,3 +1,0 @@
-display_name: Amazon Lovart 1.0
-short_description: Plan and generate compliant Amazon main images, secondary images, and A+ modules with built-in image_gen.
-default_prompt: Create an Amazon product image set from the provided product photos or description using built-in image_gen, starting with the compliant main image and then secondary images and A+ modules as needed.

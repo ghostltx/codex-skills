@@ -1,4 +1,0 @@
-interface:
-  display_name: "Merge Split Layers Into PSD"
-  short_description: "Rebuild editable PSD files from split layer images."
-  default_prompt: "Merge split layer images into a Photoshop-editable PSD using the original canvas size, filename or manifest z-order, full-canvas RGBA layers, and edge-connected white background removal."
