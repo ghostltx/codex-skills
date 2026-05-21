@@ -12,7 +12,11 @@ Use this skill for Amazon product-page extraction and ASIN collection packages.
 - Input: one Amazon ASIN or product page URL.
 - Output folder: Desktop folder named by ASIN unless the user gives a folder name.
 - Main images: download only the current product variant's `Click to see full view` gallery images into `main-images`.
-- A+ images: download detected product-page A+ / enhanced brand content images into `aplus-images`.
+- A+ images: download only large horizontal A+ / enhanced brand content images into `aplus-images`.
+  - Keep A+ images only when image width is greater than `1000px`.
+  - Keep horizontal A+ images only: width must be greater than height.
+  - Typical valid A+ image size is around `1460x600`.
+  - Do not save small icons, thumbnails, square images, comparison-table badges, spacer images, or other small A+ assets.
 - Reviews: export full SellerSprite reviews to Excel as `<ASIN>-reviews.xlsx` when a SellerSprite secret key is available.
 - Do not save image link TXT/CSV files unless the user explicitly asks.
 - Do not download hidden variant galleries, recommendation images, comparison images, or unrelated page assets.
@@ -28,7 +32,10 @@ Use this skill for Amazon product-page extraction and ASIN collection packages.
    - Do not use a broad page-wide `hiRes`/`large` scan as the primary source because it may include variants, recommendation images, A+ images, and other assets.
    - Use browser clicking only as a verification fallback when `colorImages.initial` is missing or ambiguous.
    - If both `colorImages.initial` and browser verification are blocked, explain the limitation before falling back to leading page-gallery URLs.
-5. Extract A+ images from the product-page A+ / enhanced brand content regions and download them into `aplus-images`.
+5. Extract A+ images from the product-page A+ / enhanced brand content regions, then filter by real image dimensions before saving.
+   - Save only large horizontal images with width greater than `1000px`.
+   - Require width greater than height, so square images such as `2000x2000` are not treated as A+ banners.
+   - Treat small images as noise even if they are inside the A+ container.
 6. Fetch all SellerSprite reviews through direct MCP HTTP `tools/call` and export them to Excel.
 7. Save a manifest JSON with counts, source URLs, and output paths.
 8. If SellerSprite is not authorized or missing a key, continue image export and report the review blocker.

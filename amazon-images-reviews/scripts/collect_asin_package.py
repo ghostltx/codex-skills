@@ -14,6 +14,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+import struct
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Any
@@ -47,7 +48,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--marketplace", default="US", help="SellerSprite marketplace code. Default: US.")
     parser.add_argument("--out", help="Output directory. Default: Desktop/<ASIN>.")
     parser.add_argument("--main-count", type=int, help="Limit main image count.")
-    parser.add_argument("--max-aplus-images", type=int, default=40, help="Maximum A+ image count. Default: 40.")
+    parser.add_argument("--min-aplus-width", type=int, default=1001, help="Minimum saved A+ image width. Default: 1001.")
+    parser.add_argument("--allow-square-aplus", action="store_true", help="Allow square/non-horizontal A+ images. Default: false.")
+    parser.add_argument("--max-aplus-images", type=int, default=40, help="Maximum saved A+ image count. Default: 40.")
+    parser.add_argument("--max-aplus-candidates", type=int, default=160, help="Maximum A+ candidate URLs to inspect before width filtering. Default: 160.")
     parser.add_argument("--skip-aplus", action="store_true", help="Do not download A+ images.")
     parser.add_argument("--skip-reviews", action="store_true", help="Do not export SellerSprite reviews.")
     parser.add_argument("--max-review-pages", type=int, default=10000, help="Maximum review pages to fetch. Default: 10000.")
@@ -60,6 +64,10 @@ def parse_args() -> argparse.Namespace:
         parser.error("--max-review-pages must be >= 1")
     if args.max_aplus_images < 1:
         parser.error("--max-aplus-images must be >= 1")
+    if args.max_aplus_candidates < 1:
+        parser.error("--max-aplus-candidates must be >= 1")
+    if args.min_aplus_width < 1:
+        parser.error("--min-aplus-width must be >= 1")
     if args.review_sleep < 0:
         parser.error("--review-sleep must be >= 0")
     return args
@@ -82,10 +90,18 @@ def asin_from_input(value: str) -> str:
     raise SystemExit("Could not identify ASIN from input.")
 
 
-def fetch_bytes(url: str) -> bytes:
+def fetch_bytes(url: str, attempts: int = 3) -> bytes:
     request = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return response.read()
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return response.read()
+        except (urllib.error.URLError, TimeoutError) as exc:
+            last_error = exc
+            if attempt < attempts:
+                time.sleep(1.5 * attempt)
+    raise last_error if last_error else RuntimeError(f"Failed to fetch {url}")
 
 
 def fetch_text(url: str) -> str:
@@ -190,7 +206,7 @@ def normalize_amazon_image_url(url: str) -> str:
     return re.sub(r"\._[A-Z0-9_,]+_\.", ".", url)
 
 
-def extract_aplus_image_urls(page: str, main_urls: list[str], limit: int) -> list[str]:
+def extract_aplus_image_urls(page: str, main_urls: list[str], candidate_limit: int) -> list[str]:
     region = extract_aplus_html(page)
     if not region:
         return []
@@ -204,22 +220,89 @@ def extract_aplus_image_urls(page: str, main_urls: list[str], limit: int) -> lis
                 continue
             if url not in urls:
                 urls.append(url)
-                if len(urls) >= limit:
+                if len(urls) >= candidate_limit:
                     return urls
     return urls
 
 
-def download_images(urls: list[str], out_dir: Path) -> list[dict[str, Any]]:
+def jpeg_dimensions(data: bytes) -> tuple[int, int] | None:
+    if not data.startswith(b"\xff\xd8"):
+        return None
+    index = 2
+    while index + 9 < len(data):
+        if data[index] != 0xFF:
+            index += 1
+            continue
+        marker = data[index + 1]
+        index += 2
+        if marker in {0xD8, 0xD9, 0x01} or 0xD0 <= marker <= 0xD7:
+            continue
+        if index + 2 > len(data):
+            return None
+        segment_length = int.from_bytes(data[index:index + 2], "big")
+        if segment_length < 2 or index + segment_length > len(data):
+            return None
+        if marker in {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}:
+            if index + 7 > len(data):
+                return None
+            height = int.from_bytes(data[index + 3:index + 5], "big")
+            width = int.from_bytes(data[index + 5:index + 7], "big")
+            return width, height
+        index += segment_length
+    return None
+
+
+def image_dimensions(data: bytes) -> tuple[int, int] | None:
+    if data.startswith(b"\x89PNG\r\n\x1a\n") and len(data) >= 24:
+        width, height = struct.unpack(">II", data[16:24])
+        return width, height
+    if data.startswith(b"\xff\xd8"):
+        return jpeg_dimensions(data)
+    if data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        if data[12:16] == b"VP8X" and len(data) >= 30:
+            width = int.from_bytes(data[24:27], "little") + 1
+            height = int.from_bytes(data[27:30], "little") + 1
+            return width, height
+        if data[12:16] == b"VP8 " and len(data) >= 30:
+            width = int.from_bytes(data[26:28], "little") & 0x3FFF
+            height = int.from_bytes(data[28:30], "little") & 0x3FFF
+            return width, height
+        if data[12:16] == b"VP8L" and len(data) >= 25:
+            bits = int.from_bytes(data[21:25], "little")
+            width = (bits & 0x3FFF) + 1
+            height = ((bits >> 14) & 0x3FFF) + 1
+            return width, height
+    return None
+
+
+def download_images(
+    urls: list[str],
+    out_dir: Path,
+    *,
+    min_width: int | None = None,
+    require_landscape: bool = False,
+    max_saved: int | None = None,
+) -> list[dict[str, Any]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
-    for index, url in enumerate(urls, start=1):
+    for url in urls:
         suffix = Path(urlparse(url).path).suffix or ".jpg"
         if suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
             suffix = ".jpg"
-        path = out_dir / f"{index:02d}{suffix}"
         data = fetch_bytes(url)
+        dimensions = image_dimensions(data)
+        width = dimensions[0] if dimensions else None
+        height = dimensions[1] if dimensions else None
+        if min_width is not None and (width is None or width < min_width):
+            continue
+        if require_landscape and (width is None or height is None or width <= height):
+            continue
+        index = len(rows) + 1
+        path = out_dir / f"{index:02d}{suffix}"
         path.write_bytes(data)
-        rows.append({"index": index, "file": path.name, "url": url, "bytes": len(data)})
+        rows.append({"index": index, "file": path.name, "url": url, "bytes": len(data), "width": width, "height": height})
+        if max_saved is not None and len(rows) >= max_saved:
+            break
     return rows
 
 
@@ -408,9 +491,15 @@ def main() -> int:
 
     aplus_rows: list[dict[str, Any]] = []
     if not args.skip_aplus:
-        aplus_urls = extract_aplus_image_urls(page, main_urls, args.max_aplus_images)
+        aplus_urls = extract_aplus_image_urls(page, main_urls, args.max_aplus_candidates)
         if aplus_urls:
-            aplus_rows = download_images(aplus_urls, out_dir / "aplus-images")
+            aplus_rows = download_images(
+                aplus_urls,
+                out_dir / "aplus-images",
+                min_width=args.min_aplus_width,
+                require_landscape=not args.allow_square_aplus,
+                max_saved=args.max_aplus_images,
+            )
 
     review_path = None
     review_error = None
