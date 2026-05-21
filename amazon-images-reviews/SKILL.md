@@ -1,25 +1,26 @@
 ---
 name: Amazon Images + Reviews
-description: Use when the user provides an Amazon product page URL and asks to extract or download product images, Click to see full view images, main gallery images, or product reviews. Downloads only the current variant's Click to see full view gallery images by default, not variant/recommendation/A+ images, and can optionally export embedded reviews.
+description: Use when the user provides an Amazon ASIN or product page URL and asks to collect Amazon listing assets, main gallery images, A+ images, Click to see full view images, or product reviews. Creates a Desktop folder named by ASIN, downloads current-variant main images and A+ images, and can export full SellerSprite reviews to Excel.
 ---
 
 # Amazon Images + Reviews
 
-Use this skill for Amazon product-page extraction.
+Use this skill for Amazon product-page extraction and ASIN collection packages.
 
 ## Default Behavior
 
-- Input: one Amazon product page URL.
+- Input: one Amazon ASIN or product page URL.
 - Output folder: Desktop folder named by ASIN unless the user gives a folder name.
-- Images: download only the current product variant's `Click to see full view` gallery images.
-- Filenames: `01.jpg`, `02.jpg`, ...
+- Main images: download only the current product variant's `Click to see full view` gallery images into `main-images`.
+- A+ images: download detected product-page A+ / enhanced brand content images into `aplus-images`.
+- Reviews: export full SellerSprite reviews to Excel as `<ASIN>-reviews.xlsx` when a SellerSprite secret key is available.
 - Do not save image link TXT/CSV files unless the user explicitly asks.
-- Do not download hidden variant galleries, recommendation images, A+ content, comparison images, or other page assets.
-- If the user says "评论", "reviews", or asks for comments/reviews, also export accessible embedded reviews.
+- Do not download hidden variant galleries, recommendation images, comparison images, or unrelated page assets.
+- If SellerSprite is unavailable, optionally export accessible embedded product-page reviews and label them as partial.
 
 ## Workflow
 
-1. Identify the ASIN from the URL.
+1. Identify the ASIN from the input. If the user gives only an ASIN, build `https://www.amazon.com/dp/<ASIN>`.
 2. Fetch the product detail page with a browser-like user agent.
 3. Extract the current variant gallery from the page's `colorImages.initial` data.
 4. Download exactly the `hiRes` URLs in `colorImages.initial`; this is the working source of truth for the `Click to see full view` image set and count.
@@ -27,10 +28,41 @@ Use this skill for Amazon product-page extraction.
    - Do not use a broad page-wide `hiRes`/`large` scan as the primary source because it may include variants, recommendation images, A+ images, and other assets.
    - Use browser clicking only as a verification fallback when `colorImages.initial` is missing or ambiguous.
    - If both `colorImages.initial` and browser verification are blocked, explain the limitation before falling back to leading page-gallery URLs.
-5. Download images into the target folder.
-6. If reviews are requested, export only accessible embedded product-page reviews and clearly label them as not guaranteed full corpus if Amazon review pagination is blocked.
+5. Extract A+ images from the product-page A+ / enhanced brand content regions and download them into `aplus-images`.
+6. Fetch all SellerSprite reviews through direct MCP HTTP `tools/call` and export them to Excel.
+7. Save a manifest JSON with counts, source URLs, and output paths.
+8. If SellerSprite is not authorized or missing a key, continue image export and report the review blocker.
 
 ## Recommended Script
+
+Use `scripts/collect_asin_package.py` for the future default ASIN workflow.
+
+Examples:
+
+```powershell
+python C:\Users\ghost\.codex\skills\amazon-images-reviews\scripts\collect_asin_package.py B0C9STFGW1 --secret-key "SELLERSPRITE_KEY"
+```
+
+Using an environment variable:
+
+```powershell
+$env:SELLERSPRITE_SECRET_KEY="SELLERSPRITE_KEY"
+python C:\Users\ghost\.codex\skills\amazon-images-reviews\scripts\collect_asin_package.py B0C9STFGW1
+```
+
+Output:
+
+```text
+C:\Users\ghost\Desktop\<ASIN>\
+  main-images\
+  aplus-images\
+  <ASIN>-reviews.xlsx
+  <ASIN>-manifest.json
+```
+
+Use `--skip-reviews` for image-only collection, `--skip-aplus` for gallery-only collection, and `--max-review-pages` for a quick review sample.
+
+## Legacy Script
 
 Use `scripts/extract_amazon.py` for repeatable extraction.
 

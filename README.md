@@ -4,6 +4,19 @@
 
 ## 版本说明
 
+### v1.10
+
+`v1.10` 升级了 `amazon-images-reviews` 的 ASIN 一键采集能力：
+
+- 支持用户只提供 ASIN，即可在桌面创建同名文件夹。
+- 新增 `collect_asin_package.py`，自动下载当前变体主图到 `main-images`。
+- 自动提取并下载 A+ / Enhanced Brand Content 图片到 `aplus-images`。
+- 集成 SellerSprite MCP 评论拉取，导出完整评论 Excel 到 `<ASIN>-reviews.xlsx`。
+- 生成 `<ASIN>-manifest.json`，记录主图、A+ 图片、评论文件、数量和错误信息。
+- 保留旧的 `extract_amazon.py`，用于只下载主图或嵌入式评论的轻量场景。
+
+简而言之，`v1.10` 让 Amazon ASIN 采集从“单项图片下载”升级为“主图 + A+ + 评论 Excel”的桌面资料包。
+
 ### v1.09
 
 `v1.09` 将 README 更新要求写入 `sync-skills-git` 的同步规则：
