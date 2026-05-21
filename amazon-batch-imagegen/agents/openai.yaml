@@ -1,0 +1,4 @@
+interface:
+  display_name: "Amazon Batch Imagegen"
+  short_description: "反推产品图并批量生成亚马逊电商图"
+  default_prompt: "Use $amazon-batch-imagegen to turn my product image into 10 Amazon ecommerce images."

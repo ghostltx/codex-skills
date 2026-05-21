@@ -1,0 +1,4 @@
+interface:
+  display_name: "图片反推 JSON 提示词"
+  short_description: "把参考图片反推成稳定可编辑的中文 JSON 提示词"
+  default_prompt: "Use $reverse-image-json-prompt to turn the provided image into a concise Chinese JSON prompt."

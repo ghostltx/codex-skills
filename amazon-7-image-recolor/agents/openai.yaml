@@ -1,0 +1,7 @@
+interface:
+  display_name: "Amazon 7 Image Recolor"
+  short_description: "Match seven listing images to a target finish"
+  default_prompt: "Use $amazon-7-image-recolor to recolor my Amazon seven-image set to match this target product reference while preserving all texture, layout, lighting, text, props, and backgrounds."
+
+policy:
+  allow_implicit_invocation: true
