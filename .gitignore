@@ -10,6 +10,8 @@
 !amazon-plus-1.0/**
 !amazon-images-reviews/
 !amazon-images-reviews/**
+amazon-images-reviews/**/__pycache__/
+amazon-images-reviews/**/*.pyc
 !sync-skills-git/
 !sync-skills-git/**
 !工具桌/
