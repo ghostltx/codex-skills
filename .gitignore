@@ -38,3 +38,5 @@ RH-API/**/__pycache__/
 RH-API/**/*.pyc
 !baokuan-tupian/
 !baokuan-tupian/**
+!故事板/
+!故事板/**
