@@ -4,6 +4,29 @@
 
 ## 版本说明
 
+### v1.17
+
+`v1.17` 进一步强化了 `sync-skills-git` 的发布硬规则，专门防止“只上传文件夹、但忘记 README / Tag / Release”的情况：
+
+- 明确用户说 `同步`、`推送`、`上传`、`提交 skill` 时，都必须按完整发布流程执行。
+- 新增 Mandatory Publish Checklist，要求提交文件、更新 README、创建 Tag、推送 Tag、创建 Release、填写 Release 更新说明全部完成。
+- 明确写入“Tag 不等于 Release”，只推 Tag 不算完成。
+- Push Workflow 中把更新 `README.md` 放到 staging 前，要求说明哪个 skill 改了、实际效果是什么。
+- Release 正文必须包含有用更新说明，不能是空白或默认占位内容。
+
+简而言之，`v1.17` 把你要求的“上传 skill 时必须带版本和更新说明”写成硬性检查清单。
+
+### v1.16
+
+`v1.16` 是版本说明补丁，补齐了 GitHub README 和 Release 页面里缺失的 `v1.14` / `v1.15` 更新内容：
+
+- README 新增 `v1.14` 的 `NEWAPI-TEST` 说明。
+- README 新增 `v1.15` 的 `sync-skills-git` 发布流程修复说明。
+- 更新 `v1.14` 和 `v1.15` 的 GitHub Release 正文。
+- 新建 `v1.16` Release，记录这次文档补丁。
+
+简而言之，`v1.16` 修复“有 Tag / Release，但主页看不到更新内容”的问题。
+
 ### v1.15
 
 `v1.15` 更新了 `sync-skills-git` 的同步发布流程，防止只推送代码但漏掉版本发布：
