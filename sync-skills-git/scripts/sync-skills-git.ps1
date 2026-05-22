@@ -98,40 +98,7 @@ function Ensure-GitProxy {
 }
 
 function New-DefaultTagName {
-    $versionTags = @()
-    try {
-        $versionTags = Get-RemoteTags |
-            Where-Object { $_ -match "^v\d+\.\d+$" }
-    } catch {
-        $versionTags = & git -C $RepoPath tag --list "v*"
-        if ($LASTEXITCODE -ne 0) {
-            throw "Could not list version tags."
-        }
-        $versionTags = $versionTags |
-            Where-Object { $_ -match "^v\d+\.\d+$" }
-    }
-
-    $versions = $versionTags | ForEach-Object {
-        if ($_ -match "^v(?<major>\d+)\.(?<minor>\d+)$") {
-            [pscustomobject]@{
-                Major = [int]$Matches.major
-                Minor = [int]$Matches.minor
-                MinorWidth = $Matches.minor.Length
-            }
-        }
-    }
-
-    $latest = $versions |
-        Sort-Object -Property Major, Minor -Descending |
-        Select-Object -First 1
-
-    if ($null -eq $latest) {
-        return "v1.01"
-    }
-
-    $nextMinor = $latest.Minor + 1
-    $minorWidth = [Math]::Max(2, [int]$latest.MinorWidth)
-    return "v$($latest.Major).$($nextMinor.ToString("D$minorWidth"))"
+    return "skills-v" + (Get-Date -Format "yyyyMMdd-HHmmss")
 }
 
 function Get-GitHubReleaseToken {
@@ -141,19 +108,6 @@ function Get-GitHubReleaseToken {
     if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_TOKEN)) {
         return $env:GITHUB_TOKEN
     }
-
-    $credentialInput = Join-Path ([System.IO.Path]::GetTempPath()) "codex-skills-github-credential-input.txt"
-    Set-Content -LiteralPath $credentialInput -Value "protocol=https`nhost=github.com`n" -NoNewline
-    $credentialText = Get-Content -LiteralPath $credentialInput -Raw | git credential fill
-    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace(($credentialText -join "`n"))) {
-        $tokenLine = $credentialText |
-            Where-Object { $_ -like "password=*" } |
-            Select-Object -First 1
-        if (-not [string]::IsNullOrWhiteSpace($tokenLine)) {
-            return ($tokenLine -replace "^password=", "")
-        }
-    }
-
     return ""
 }
 
