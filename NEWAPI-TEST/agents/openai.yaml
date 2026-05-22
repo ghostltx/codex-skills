@@ -1,0 +1,6 @@
+interface:
+  display_name: "NEWAPI TEST"
+  short_description: "Test NewAPI models for Codex compatibility"
+  default_prompt: "Use $NEWAPI TEST to test my NewAPI key and list all Codex-compatible models."
+policy:
+  allow_implicit_invocation: true

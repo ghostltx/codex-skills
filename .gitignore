@@ -40,3 +40,5 @@ RH-API/**/*.pyc
 !baokuan-tupian/**
 !故事板/
 !故事板/**
+!NEWAPI-TEST/
+!NEWAPI-TEST/**
