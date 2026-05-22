@@ -4,6 +4,30 @@
 
 ## 版本说明
 
+### v1.15
+
+`v1.15` 更新了 `sync-skills-git` 的同步发布流程，防止只推送代码但漏掉版本发布：
+
+- 明确 `同步` 必须完成 commit、push、创建并推送 Tag、创建 GitHub Release 的完整流程。
+- 当本地仓库太脏、需要改用临时干净 clone 推送时，也必须补齐 Tag 和 Release，不能只推 `main`。
+- 拉取覆盖前必须先列出远端 Tags，让用户选择具体版本后再覆盖本地。
+- 脚本支持 `-TagName`、`-ListTags`、`-ReleaseTitle`、`-ReleaseNotes`，方便指定版本和发布说明。
+- 如果 GitHub Release 创建失败，必须明确报告是缺少 `gh`、`GH_TOKEN` 或 `GITHUB_TOKEN` 等阻塞原因。
+
+简而言之，`v1.15` 把“同步后必须发布版本说明”写进规则和脚本，避免再出现只有 Tag 没有 Release 的情况。
+
+### v1.14
+
+`v1.14` 新增了 `NEWAPI-TEST` skill，用于测试 NewAPI key 能访问哪些模型：
+
+- 默认测试地址为 `http://64.186.244.43:12001/v1`，API key 由用户每次临时提供，不写入仓库。
+- 自动拉取 `/models` 模型列表，并逐个测试 `/responses` 是否可用于新版 Codex。
+- 额外测试 `/chat/completions`，列出“普通可连通并能返回内容”的模型。
+- 输出两张表：Codex 可用模型表，以及普通连通可返回模型表。
+- 适合快速判断某个分组 key 是否能配置到 Codex，或者只能用于 Chat Completions 客户端。
+
+简而言之，`v1.14` 把 NewAPI 模型连通性和 Codex 兼容性检测做成了可复用 skill。
+
 ### v1.13
 
 `v1.13` 新增了 `故事板` skill，用于把产品图片或产品概念整理成 15 秒 6 宫格广告故事板提示词：
