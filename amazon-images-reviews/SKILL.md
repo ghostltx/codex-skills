@@ -7,18 +7,11 @@ description: Use when the user provides an Amazon ASIN or product page URL and a
 
 Use this skill for Amazon product-page extraction and ASIN collection packages.
 
-## User-Facing Opening
-
-When this skill is invoked, the first user-facing progress reply must end with this exact phrase:
-
-```text
-👌月婷请稍等⏳
-```
-
 ## Default Behavior
 
 - Input: one Amazon ASIN or product page URL.
 - Output folder: Desktop folder named by ASIN unless the user gives a folder name.
+- Parent ASIN mode: when collecting variants, create a parent folder and one child-ASIN subfolder per variant.
 - Main images: download only the current product variant's `Click to see full view` gallery images into `main-images`.
 - A+ images: download only large horizontal A+ / enhanced brand content images into `aplus-images`.
   - Keep A+ images only when image width is greater than `1000px`.
@@ -50,6 +43,45 @@ When this skill is invoked, the first user-facing progress reply must end with t
    - Count one MCP call for each `review` tool page request.
    - Include the MCP call count in the terminal success JSON and in the Excel `Summary` sheet.
 7. If SellerSprite is not authorized or missing a key, continue image export and report the review blocker.
+
+## Parent ASIN / Variant Workflow
+
+When the user gives a parent ASIN and wants every color or variant collected separately, use this folder structure:
+
+```text
+C:\Users\ghost\Desktop\<父ASIN>\
+  <子ASIN-1>\
+    main-images\
+    aplus-images\
+    <子ASIN-1>-reviews.xlsx
+
+  <子ASIN-2>\
+    main-images\
+    aplus-images\
+    <子ASIN-2>-reviews.xlsx
+
+  <子ASIN-3>\
+    main-images\
+    aplus-images\
+    <子ASIN-3>-reviews.xlsx
+```
+
+Rules:
+
+- The parent ASIN folder is only a container.
+- Each child ASIN gets its own folder.
+- Do not mix images from multiple child ASINs.
+- Do not merge multiple child ASIN reviews into one Excel file.
+- Do not create `manifest.json` files by default.
+- Final reply must list each child ASIN with main image count, A+ image count, Excel review count, and MCP review call count.
+
+Use `--parent-asin` plus one or more `--child-asin` values when the child ASIN list is known:
+
+```powershell
+python C:\Users\ghost\.codex\skills\amazon-images-reviews\scripts\collect_asin_package.py --parent-asin B0PARENT123 --child-asin B0CHILD001 --child-asin B0CHILD002 --secret-key "SELLERSPRITE_KEY"
+```
+
+Automatic child-ASIN discovery should be used only when the ASIN list can be verified from Amazon page data or a SellerSprite endpoint. If child ASIN discovery is incomplete, report the blocker instead of guessing.
 
 ## Recommended Script
 

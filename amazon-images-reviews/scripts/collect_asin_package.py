@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import html
+import http.client
 import json
 import os
 import re
@@ -44,7 +45,9 @@ KEY_ENV_NAMES = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Create a Desktop ASIN package with main images, A+ images, and reviews Excel.")
-    parser.add_argument("input", help="Amazon ASIN or product page URL.")
+    parser.add_argument("input", nargs="?", help="Amazon ASIN or product page URL.")
+    parser.add_argument("--parent-asin", help="Parent ASIN folder name for variant collection.")
+    parser.add_argument("--child-asin", action="append", dest="child_asins", help="Child ASIN to collect under --parent-asin. Repeatable.")
     parser.add_argument("--marketplace", default="US", help="SellerSprite marketplace code. Default: US.")
     parser.add_argument("--out", help="Output directory. Default: Desktop/<ASIN>.")
     parser.add_argument("--main-count", type=int, help="Limit main image count.")
@@ -98,7 +101,7 @@ def fetch_bytes(url: str, attempts: int = 3) -> bytes:
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
                 return response.read()
-        except (urllib.error.URLError, TimeoutError) as exc:
+        except (urllib.error.URLError, TimeoutError, http.client.IncompleteRead, http.client.RemoteDisconnected) as exc:
             last_error = exc
             if attempt < attempts:
                 time.sleep(1.5 * attempt)
@@ -290,7 +293,10 @@ def download_images(
         suffix = Path(urlparse(url).path).suffix or ".jpg"
         if suffix.lower() not in {".jpg", ".jpeg", ".png", ".webp"}:
             suffix = ".jpg"
-        data = fetch_bytes(url)
+        try:
+            data = fetch_bytes(url)
+        except Exception:
+            continue
         dimensions = image_dimensions(data)
         width = dimensions[0] if dimensions else None
         height = dimensions[1] if dimensions else None
@@ -479,11 +485,8 @@ def write_links(path: Path, rows: list[dict[str, Any]]) -> None:
     path.write_text("\n".join(f"{row['index']:02d}. {row['url']}" for row in rows), encoding="utf-8")
 
 
-def main() -> int:
-    args = parse_args()
-    asin = asin_from_input(args.input)
+def collect_one_asin(args: argparse.Namespace, asin: str, out_dir: Path) -> dict[str, Any]:
     product_url = f"https://www.amazon.com/dp/{asin}?th=1"
-    out_dir = Path(args.out) if args.out else Path.home() / "Desktop" / asin
     out_dir.mkdir(parents=True, exist_ok=True)
 
     page = fetch_text(product_url)
@@ -543,6 +546,45 @@ def main() -> int:
     if args.save_manifest:
         manifest_path = out_dir / f"{asin}-manifest.json"
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    return manifest
+
+
+def main() -> int:
+    args = parse_args()
+    if args.parent_asin or args.child_asins:
+        if not args.parent_asin:
+            raise SystemExit("--parent-asin is required when --child-asin is used.")
+        if not args.child_asins:
+            raise SystemExit("--child-asin is required when --parent-asin is used.")
+        parent_asin = asin_from_input(args.parent_asin)
+        parent_dir = Path(args.out) if args.out else Path.home() / "Desktop" / parent_asin
+        parent_dir.mkdir(parents=True, exist_ok=True)
+        children = []
+        total_mcp_calls = 0
+        seen: set[str] = set()
+        for child_input in args.child_asins:
+            child_asin = asin_from_input(child_input)
+            if child_asin in seen:
+                continue
+            seen.add(child_asin)
+            child_manifest = collect_one_asin(args, child_asin, parent_dir / child_asin)
+            children.append(child_manifest)
+            total_mcp_calls += int(child_manifest.get("mcpReviewCalls") or 0)
+        result = {
+            "parentAsin": parent_asin,
+            "folder": str(parent_dir),
+            "childCount": len(children),
+            "totalMcpReviewCalls": total_mcp_calls,
+            "children": children,
+        }
+        print(json.dumps(result, ensure_ascii=False))
+        return 0
+
+    if not args.input:
+        raise SystemExit("Provide an ASIN/URL, or use --parent-asin with one or more --child-asin values.")
+    asin = asin_from_input(args.input)
+    out_dir = Path(args.out) if args.out else Path.home() / "Desktop" / asin
+    manifest = collect_one_asin(args, asin, out_dir)
     print(json.dumps(manifest, ensure_ascii=False))
     return 0
 

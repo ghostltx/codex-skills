@@ -4,6 +4,18 @@
 
 ## 版本说明
 
+### v1.18
+
+`v1.18` 同时发布了 `amazon-images-reviews` 的父/子 ASIN 采集升级，并补充说明 `baokuan-tupian` 已作为个人 skill 白名单项保存在仓库中：
+
+- `amazon-images-reviews` 新增 Parent ASIN / Variant Workflow，可用父 ASIN 文件夹承载多个子 ASIN。
+- 每个子 ASIN 会独立生成 `main-images`、`aplus-images` 和评论 Excel，避免不同颜色或变体素材混在一起。
+- `collect_asin_package.py` 新增 `--parent-asin` 和可重复传入的 `--child-asin` 参数，用于批量采集已知子 ASIN。
+- 图片下载增加对 `IncompleteRead`、`RemoteDisconnected` 和单张图片失败的容错，降低 Amazon 图片偶发断连导致整批中断的概率。
+- `baokuan-tupian` 已明确保留在 `.gitignore` 白名单中，仓库会同步 `baokuan-tupian/SKILL.md` 和 `baokuan-tupian/agents/openai.yaml`，方便在 GitHub 页面和跨设备同步时直接看到。
+
+简而言之，`v1.18` 让 Amazon 变体资料包采集更稳、更清晰，也把“爆款图片”skill 的仓库可见性写进版本说明。
+
 ### v1.17
 
 `v1.17` 进一步强化了 `sync-skills-git` 的发布硬规则，专门防止“只上传文件夹、但忘记 README / Tag / Release”的情况：
