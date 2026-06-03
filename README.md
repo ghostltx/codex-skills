@@ -4,6 +4,19 @@
 
 ## 版本说明
 
+### v1.20
+
+`v1.20` 发布了 `amazon-recolor-v1.02`，把 Amazon 改色套图里的 `N+M` 规则固定成可执行契约：
+
+- `N+M` 中 `N` 代表前 N 张源图，也是本次生成并发数。
+- `M` 代表最后 M 张颜色/材质参考图，只用于参考产品颜色和材质，不复制构图、背景或角度。
+- 默认 T8Star 路线更新为 `gpt-image-2`，按源图比例选择合法输出尺寸，减少方图强制裁切。
+- 新增 `amazon-recolor/scripts/run-gpt-image2-recolor.ps1`，可直接传入 `-Count "N+M"`、图片路径数组和输出目录批量并发改色。
+- runner 默认并发为 `N`，硬上限 10；例如 `8+1` 会并发 8 张，`10+2` 会并发 10 张。
+- 发布版脚本保留 `-ApiKey` 参数和 `T8STAR_API_KEY` / `NEWAPI_API_KEY` 环境变量读取，不把真实密钥提交到仓库。
+
+简而言之，`v1.20` 让 Amazon 改色从“理解 N+M”升级成“按 N+M 自动分源图、分参考图、按 N 并发生成”的稳定流程。
+
 ### v1.19
 
 `v1.19` 发布了 `amazon-recolor-v1.01`，把 Amazon 改色 workflow 的默认生图路线切到已经实测可用的 `gpt-image-2-all`：

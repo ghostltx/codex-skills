@@ -1,37 +1,56 @@
 ---
-name: amazon-recolor-v1.01
-description: Amazon Recolor v1.01. Recolor Amazon ecommerce listing image sets using source images plus color/material reference images. Use when the user provides product listing images and target color references, including shorthand like 7+1, 8+1, 9+2, or 10+2 where the first number is the source image count to edit and the second number is the reference image count.
+name: amazon-recolor-v1.02
+description: Amazon Recolor v1.02. Recolor Amazon ecommerce listing image sets using source images plus color/material reference images. Use when the user provides product listing images and target color references, including shorthand like 7+1, 8+1, 9+2, or 10+2 where the first number is both the source image count to edit and the generation concurrency, and the second number is the reference image count.
 ---
 
-# Amazon Recolor v1.01
+# Amazon Recolor v1.02
 
 ## Core Convention
 
 Interpret `N+M` as:
 
 - `N` = first N source ecommerce images to edit.
+- `N` also = the intended generation concurrency for this job, capped at 10 concurrent image edits by default.
 - `M` = last M color/material reference images.
 
 Examples:
 
-- `7+1` means the first 7 images are source images and the last 1 image is the target color/material reference.
-- `9+2` means the first 9 images are source images and the last 2 images are target color/material references.
+- `7+1` means the first 7 images are source images, the last 1 image is the target color/material reference, and generation should run with 7 concurrent source-image edits.
+- `8+1` means the first 8 images are source images, the last 1 image is the target color/material reference, and generation should run with 8 concurrent source-image edits.
+- `9+2` means the first 9 images are source images, the last 2 images are target color/material references, and generation should run with 9 concurrent source-image edits.
+- `10+2` means the first 10 images are source images, the last 2 images are target color/material references, and generation should run with 10 concurrent source-image edits.
 
 Use reference images only as color/material sources. Do not copy their layout, camera angle, background, product geometry, crop, or scene.
 
 ## Generation Routing
 
-Default to the T8Star OpenAI-compatible image editing route with model `gpt-image-2-all` for Amazon recolor tasks.
+Default to the T8Star OpenAI-compatible image editing route with model `gpt-image-2` for Amazon recolor tasks unless the user explicitly names another compatible model.
 
 Default generation settings:
 
 - Base URL: `https://ai.t8star.org/v1`.
-- Model: `gpt-image-2-all`.
-- Size: fixed `1254x1254` / 1:1 by default.
-- Concurrency: up to 10 parallel source-image edits by default.
-- Use the user's configured T8Star/NewAPI key from the environment; do not hard-code API keys in this skill or generated scripts.
+- Model: `gpt-image-2`.
+- Size: preserve each source image aspect ratio when possible; otherwise use a valid `gpt-image-2` size selected for the source image.
+- Concurrency: `N` from the user's `N+M` shorthand, capped at 10 concurrent source-image edits by default.
+- Use the user's configured T8Star/NewAPI key from the environment or a local runner parameter. Do not commit real API keys to the skill repository or generated published scripts.
 
 When editing source images, submit each source ecommerce image with the target color/material reference image(s), one output per source image, using clear filenames that map back to the source.
+
+If the task uses the T8Star `gpt-image-2` route and local file paths are available, prefer the bundled runner template. Replace `N+M` with the user's actual shorthand:
+
+```powershell
+& "$env:USERPROFILE\.codex\skills\amazon-recolor\scripts\run-gpt-image2-recolor.ps1" `
+  -Count "N+M" `
+  -ImagePaths @(
+    "C:\path\1.jpg",
+    "C:\path\2.jpg",
+    "...",
+    "C:\path\reference-1.jpg"
+  ) `
+  -OutputDir "C:\path\output"
+```
+
+The runner parses `N+M`, treats the first `N` paths as source images, treats the last `M` paths as references, and sets `-Parallel` to `N` unless an explicit lower value is passed. Its hard maximum is 10 concurrent jobs.
 
 Use the system built-in `imagegen` workflow only when the T8Star route is unavailable in the current surface or the user explicitly asks for built-in imagegen.
 
@@ -42,11 +61,12 @@ Use RunningHub image-to-image only when the user explicitly asks to combine this
 1. Identify the source count and reference count from the user's `N+M` shorthand or explicit wording.
 2. Treat the first N images as the only images that need generated outputs.
 3. Treat the last M images as target finish references only.
-4. Recolor all sellable product surfaces and matching companion products in each source image.
-5. Preserve all non-product elements: text, icons, dimensions, people, clothing, props, drinks, plants, background, graphic layout, and metal hardware unless the user explicitly asks to recolor them.
-6. Generate one output per source image by default.
-7. Use clear output names that map to the source image, not generic names that can hide duplicates.
-8. Check for duplicate outputs, missing source coverage, color mismatch, reference layout leakage, damaged text, and leftover original color.
+4. Set generation concurrency to N, capped at 10 concurrent edits by default.
+5. Recolor all sellable product surfaces and matching companion products in each source image.
+6. Preserve all non-product elements: text, icons, dimensions, people, clothing, props, drinks, plants, background, graphic layout, and metal hardware unless the user explicitly asks to recolor them.
+7. Generate one output per source image by default.
+8. Use clear output names that map to the source image, not generic names that can hide duplicates.
+9. Check for duplicate outputs, missing source coverage, color mismatch, reference layout leakage, damaged text, and leftover original color.
 
 For detailed QA language, read `references/recolor-qa.md` when preparing final prompts or reviewing outputs.
 
