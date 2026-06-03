@@ -1,9 +1,9 @@
 ---
-name: amazon-recolor
-description: Recolor Amazon ecommerce listing image sets using source images plus color/material reference images. Use when the user provides product listing images and target color references, including shorthand like 7+1, 8+1, 9+2, or 10+2 where the first number is the source image count to edit and the second number is the reference image count.
+name: amazon-recolor-v1.01
+description: Amazon Recolor v1.01. Recolor Amazon ecommerce listing image sets using source images plus color/material reference images. Use when the user provides product listing images and target color references, including shorthand like 7+1, 8+1, 9+2, or 10+2 where the first number is the source image count to edit and the second number is the reference image count.
 ---
 
-# Amazon Recolor
+# Amazon Recolor v1.01
 
 ## Core Convention
 
@@ -21,7 +21,19 @@ Use reference images only as color/material sources. Do not copy their layout, c
 
 ## Generation Routing
 
-Default to the system built-in `imagegen` workflow for Amazon recolor tasks.
+Default to the T8Star OpenAI-compatible image editing route with model `gpt-image-2-all` for Amazon recolor tasks.
+
+Default generation settings:
+
+- Base URL: `https://ai.t8star.org/v1`.
+- Model: `gpt-image-2-all`.
+- Size: fixed `1254x1254` / 1:1 by default.
+- Concurrency: up to 10 parallel source-image edits by default.
+- Use the user's configured T8Star/NewAPI key from the environment; do not hard-code API keys in this skill or generated scripts.
+
+When editing source images, submit each source ecommerce image with the target color/material reference image(s), one output per source image, using clear filenames that map back to the source.
+
+Use the system built-in `imagegen` workflow only when the T8Star route is unavailable in the current surface or the user explicitly asks for built-in imagegen.
 
 Use RunningHub image-to-image only when the user explicitly asks to combine this skill with `runninghub-generic-i2i`, names RunningHub/I2I as the desired route, or otherwise clearly requests the external I2I workflow for the current task.
 

@@ -4,6 +4,18 @@
 
 ## 版本说明
 
+### v1.19
+
+`v1.19` 发布了 `amazon-recolor-v1.01`，把 Amazon 改色 workflow 的默认生图路线切到已经实测可用的 `gpt-image-2-all`：
+
+- `amazon-recolor` 的内部 skill 名称更新为 `amazon-recolor-v1.01`，显示名更新为 `Amazon Recolor v1.01`。
+- 默认生图路线改为 T8Star OpenAI-compatible API，模型固定为 `gpt-image-2-all`。
+- 默认尺寸固定为 `1254x1254`、`1:1`，适配 Amazon 方图改色输出。
+- 默认最多 10 张源图并行处理，方便 `7+1`、`9+2`、`10+2` 等套图改色任务批量生成。
+- 保留显式覆盖规则：只有用户明确要求内置 `imagegen` 或 RunningHub 时才切换路线。
+
+简而言之，`v1.19` 让 Amazon 改色 skill 进入 `v1.01`，默认使用 `gpt-image-2-all` 进行 10 并行方图生图。
+
 ### v1.18
 
 `v1.18` 同时发布了 `amazon-images-reviews` 的父/子 ASIN 采集升级，并补充说明 `baokuan-tupian` 已作为个人 skill 白名单项保存在仓库中：
