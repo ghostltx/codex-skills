@@ -4,6 +4,19 @@
 
 ## 版本说明
 
+### v1.21
+
+`v1.21` 发布了 `amazon-recolor-v1.03`，把 Amazon 改色批处理从“只按编号跑图”升级为更贴近实际工作流的版本：
+
+- 新增 `+M` 简写规则：例如 `+1` 会复用上一批源图和源图数量，只替换新的颜色/材质参考图。
+- 明确要求先用视觉/AI 判断参考图里的产品颜色，再把英文颜色名传给本地 runner。
+- 未指定输出目录时，默认用颜色英文命名文件夹，例如 `gray`、`blue`、`brown`，不再用参考图编号命名。
+- 本地 runner 示例支持传入 `-SourceDir`、显式 `-ReferencePaths`、`-ColorName` 和 `-TargetFinish`，适配参考图编号不连续或用户单独追加参考图的场景。
+- `amazon-recolor/scripts/run-gpt-image2-recolor.ps1` 支持 `+M` 解析，并在生成结束后输出 `ELAPSED_SECONDS` 和 `ELAPSED`。
+- 最终汇报要求包含生成耗时，方便比较不同批次和不同颜色的生成效率。
+
+简而言之，`v1.21` 让 Amazon 改色流程支持“继续上一批换一个颜色参考图”，并自动用 AI 判断的颜色名管理输出目录和耗时结果。
+
 ### v1.20
 
 `v1.20` 发布了 `amazon-recolor-v1.02`，把 Amazon 改色套图里的 `N+M` 规则固定成可执行契约：

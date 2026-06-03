@@ -1,9 +1,9 @@
 ---
-name: amazon-recolor-v1.02
-description: Amazon Recolor v1.02. Recolor Amazon ecommerce listing image sets using source images plus color/material reference images. Use when the user provides product listing images and target color references, including shorthand like 7+1, 8+1, 9+2, or 10+2 where the first number is both the source image count to edit and the generation concurrency, and the second number is the reference image count.
+name: amazon-recolor-v1.03
+description: Amazon Recolor v1.03. Recolor Amazon ecommerce listing image sets using source images plus color/material reference images. Supports N+M and +M shorthand, AI-identified color folder naming, and elapsed-time reporting for batch recolor runs.
 ---
 
-# Amazon Recolor v1.02
+# Amazon Recolor v1.03
 
 ## Core Convention
 
@@ -13,14 +13,23 @@ Interpret `N+M` as:
 - `N` also = the intended generation concurrency for this job, capped at 10 concurrent image edits by default.
 - `M` = last M color/material reference images.
 
+Interpret `+M` with no number before `+` as:
+
+- Reuse the previous source-image set and previous source count from the last Amazon recolor batch in the current task/thread.
+- Replace only the last M color/material reference image(s) with the newly provided reference image(s).
+- Keep generation concurrency equal to the reused source count, capped at 10 concurrent edits by default.
+
 Examples:
 
 - `7+1` means the first 7 images are source images, the last 1 image is the target color/material reference, and generation should run with 7 concurrent source-image edits.
 - `8+1` means the first 8 images are source images, the last 1 image is the target color/material reference, and generation should run with 8 concurrent source-image edits.
 - `9+2` means the first 9 images are source images, the last 2 images are target color/material references, and generation should run with 9 concurrent source-image edits.
 - `10+2` means the first 10 images are source images, the last 2 images are target color/material references, and generation should run with 10 concurrent source-image edits.
+- `+1` means reuse the previous source-image set and source count, replace the reference side with 1 newly provided color/material reference image, and run with the reused source count as concurrency.
 
 Use reference images only as color/material sources. Do not copy their layout, camera angle, background, product geometry, crop, or scene.
+
+When the user gives local source images plus reference images and only provides `N+M`, infer the target product color/material from the reference image(s) with visual/AI judgment before running generation. Use the product color name in English, such as `gray`, `brown`, `white`, `black`, `teak`, or `navy`, as the default output folder name when the user does not provide an explicit output directory. Do not name the folder by the reference image index. If multiple references indicate the same finish, use one concise finish name; if they indicate combined finishes, join short English names with hyphens.
 
 ## Generation Routing
 
@@ -52,13 +61,24 @@ If the task uses the T8Star `gpt-image-2` route and local file paths are availab
 
 The runner parses `N+M`, treats the first `N` paths as source images, treats the last `M` paths as references, and sets `-Parallel` to `N` unless an explicit lower value is passed. Its hard maximum is 10 concurrent jobs.
 
+For the user's local PowerShell runner at `C:\Users\ghost\Desktop\00\run_amazon_recolor_gptimage2.ps1`, pass `-Count`, the actual `-SourceDir`, explicit `-ReferencePaths` when the uploaded reference filename does not follow the automatic `颜色\(N+1).jpg` convention, and the AI-identified `-ColorName`. If `-OutputDir` is omitted, the script creates the output folder under the source directory using `-ColorName`. Example:
+
+```powershell
+& "C:\Users\ghost\Desktop\00\run_amazon_recolor_gptimage2.ps1" `
+  -Count "8+1" `
+  -SourceDir "C:\Users\ghost\Desktop\test" `
+  -ReferencePaths @("C:\Users\ghost\Desktop\test\颜色\2.jpg") `
+  -ColorName "gray" `
+  -TargetFinish "gray wood-grain finish"
+```
+
 Use the system built-in `imagegen` workflow only when the T8Star route is unavailable in the current surface or the user explicitly asks for built-in imagegen.
 
 Use RunningHub image-to-image only when the user explicitly asks to combine this skill with `runninghub-generic-i2i`, names RunningHub/I2I as the desired route, or otherwise clearly requests the external I2I workflow for the current task.
 
 ## Workflow
 
-1. Identify the source count and reference count from the user's `N+M` shorthand or explicit wording.
+1. Identify the source count and reference count from the user's `N+M` shorthand, `+M` shorthand, or explicit wording.
 2. Treat the first N images as the only images that need generated outputs.
 3. Treat the last M images as target finish references only.
 4. Set generation concurrency to N, capped at 10 concurrent edits by default.
@@ -67,6 +87,7 @@ Use RunningHub image-to-image only when the user explicitly asks to combine this
 7. Generate one output per source image by default.
 8. Use clear output names that map to the source image, not generic names that can hide duplicates.
 9. Check for duplicate outputs, missing source coverage, color mismatch, reference layout leakage, damaged text, and leftover original color.
+10. Track elapsed time from generation submission start until all outputs are received and saved; report the total elapsed time in the final response. When using the local PowerShell runner, read and report its `ELAPSED_SECONDS` / `ELAPSED` lines.
 
 For detailed QA language, read `references/recolor-qa.md` when preparing final prompts or reviewing outputs.
 

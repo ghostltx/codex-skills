@@ -17,13 +17,23 @@ param(
 
 $ErrorActionPreference = "Continue"
 
-if ($Count -notmatch '^(\d+)\+(\d+)$') {
-  Write-Error "Invalid -Count '$Count'. Expected N+M, for example 8+1."
+if ($Count -notmatch '^(\d*)\+(\d+)$') {
+  Write-Error "Invalid -Count '$Count'. Expected N+M or +M, for example 8+1 or +1."
   exit 1
 }
 
-$sourceCount = [int]$Matches[1]
+$sourceCountText = $Matches[1]
 $referenceCount = [int]$Matches[2]
+$expectedCount = 0
+if ([string]::IsNullOrWhiteSpace($sourceCountText)) {
+  if ($ImagePaths.Count -le $referenceCount) {
+    Write-Error "Image path count mismatch. -Count $Count needs previous source images plus $referenceCount reference path(s)."
+    exit 1
+  }
+  $sourceCount = $ImagePaths.Count - $referenceCount
+} else {
+  $sourceCount = [int]$sourceCountText
+}
 $expectedCount = $sourceCount + $referenceCount
 if ($ImagePaths.Count -ne $expectedCount) {
   Write-Error "Image path count mismatch. -Count $Count requires $expectedCount image paths, but got $($ImagePaths.Count)."
@@ -55,6 +65,7 @@ if (-not (Test-Path -LiteralPath $editScript)) {
 }
 
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+$startedAt = Get-Date
 
 $sourcePaths = @($ImagePaths | Select-Object -First $sourceCount)
 $referencePaths = @($ImagePaths | Select-Object -Last $referenceCount)
@@ -177,3 +188,7 @@ while ($jobs.Count -gt 0) {
 }
 
 Get-ChildItem -LiteralPath $OutputDir -File | Sort-Object Name | Select-Object Name, Length
+$finishedAt = Get-Date
+$elapsed = $finishedAt - $startedAt
+Write-Host ("ELAPSED_SECONDS={0:N1}" -f $elapsed.TotalSeconds)
+Write-Host ("ELAPSED=" + $elapsed.ToString("hh\:mm\:ss"))
