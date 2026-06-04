@@ -1,4 +1,4 @@
 interface:
-  display_name: "Amazon Recolor v1.01"
+  display_name: "Amazon Recolor v1.03"
   short_description: "Recolor listings with N+M references"
-  default_prompt: "Use this skill to recolor Amazon ecommerce listing images. Interpret N+M as first N source images to edit and last M color/material reference images. Default generation route: T8Star gpt-image-2-all, fixed 1254x1254 1:1, up to 10 parallel edits."
+  default_prompt: "Use this skill to recolor Amazon ecommerce listing images. Interpret N+M as first N source images to edit and last M color/material reference images; +M reuses the previous source set with new reference images. Default generation route: T8Star gpt-image-2-all, preserve source aspect ratio when possible, concurrency equals N capped at 10 parallel edits, and report elapsed time."

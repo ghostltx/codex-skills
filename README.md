@@ -4,6 +4,20 @@
 
 ## 版本说明
 
+### v1.22
+
+`v1.22` 修正并强化了 `amazon-recolor-v1.03` 的 T8Star 改色执行链路，让默认行为和实测结果保持一致：
+
+- 默认模型统一改回已实测稳定的 `gpt-image-2-all`，包括 `SKILL.md`、agent 元数据和内置 runner。
+- API key 只读取 `T8STAR_API_KEY` 或显式 `-ApiKey` 参数，不再读取 `NEWAPI_API_KEY`，避免变量名混淆。
+- 新增可随 skill 分发的 `amazon-recolor/scripts/run_amazon_recolor_gptimage2.ps1`，替代依赖用户桌面私有路径的本地脚本。
+- 新 runner 默认接口为 `https://ai.t8star.org/v1`、模型为 `gpt-image-2-all`，`-ApiKey` 默认留空；如果没有环境变量，会在运行时提示输入 key。
+- 参考图目录从固定 `颜色\N.jpg` 改为可配置 `-ReferenceDir`，也支持直接传 `-ReferencePaths`。
+- 未指定 `-OutputDir` 时，在当前运行目录创建颜色名文件夹，例如 `brown`，不再强绑到源图目录。
+- 已用 `1+1` 图片编辑任务完成连通测试，`gpt-image-2-all` 成功返回并保存改色结果。
+
+简而言之，`v1.22` 把 Amazon 改色 runner 做成可分发、可配置、不含密钥的版本，并把默认模型恢复为 `gpt-image-2-all`。
+
 ### v1.21
 
 `v1.21` 发布了 `amazon-recolor-v1.03`，把 Amazon 改色批处理从“只按编号跑图”升级为更贴近实际工作流的版本：

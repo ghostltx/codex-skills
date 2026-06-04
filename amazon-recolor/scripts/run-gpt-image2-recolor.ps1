@@ -6,7 +6,7 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$OutputDir,
   [string]$BaseUrl = "https://ai.t8star.org/v1",
-  [string]$Model = "gpt-image-2",
+  [string]$Model = "gpt-image-2-all",
   [string]$ApiKey = "",
   [string]$Size = "auto",
   [int]$Parallel = 0,
@@ -51,10 +51,7 @@ if ([string]::IsNullOrWhiteSpace($ApiKey)) {
   $ApiKey = $env:T8STAR_API_KEY
 }
 if ([string]::IsNullOrWhiteSpace($ApiKey)) {
-  $ApiKey = $env:NEWAPI_API_KEY
-}
-if ([string]::IsNullOrWhiteSpace($ApiKey)) {
-  Write-Error "Missing API key. Pass -ApiKey or set T8STAR_API_KEY / NEWAPI_API_KEY."
+  Write-Error "Missing API key. Pass -ApiKey or set T8STAR_API_KEY."
   exit 1
 }
 

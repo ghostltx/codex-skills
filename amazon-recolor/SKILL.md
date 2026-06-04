@@ -33,19 +33,19 @@ When the user gives local source images plus reference images and only provides 
 
 ## Generation Routing
 
-Default to the T8Star OpenAI-compatible image editing route with model `gpt-image-2` for Amazon recolor tasks unless the user explicitly names another compatible model.
+Default to the T8Star OpenAI-compatible image editing route with model `gpt-image-2-all` for Amazon recolor tasks unless the user explicitly names another compatible model.
 
 Default generation settings:
 
 - Base URL: `https://ai.t8star.org/v1`.
-- Model: `gpt-image-2`.
-- Size: preserve each source image aspect ratio when possible; otherwise use a valid `gpt-image-2` size selected for the source image.
+- Model: `gpt-image-2-all`.
+- Size: preserve each source image aspect ratio when possible; otherwise use a valid `gpt-image-2-all` size selected for the source image.
 - Concurrency: `N` from the user's `N+M` shorthand, capped at 10 concurrent source-image edits by default.
-- Use the user's configured T8Star/NewAPI key from the environment or a local runner parameter. Do not commit real API keys to the skill repository or generated published scripts.
+- Use the user's configured T8Star API key from `T8STAR_API_KEY` or a local runner parameter. Do not commit real API keys to the skill repository or generated published scripts.
 
 When editing source images, submit each source ecommerce image with the target color/material reference image(s), one output per source image, using clear filenames that map back to the source.
 
-If the task uses the T8Star `gpt-image-2` route and local file paths are available, prefer the bundled runner template. Replace `N+M` with the user's actual shorthand:
+If the task uses the T8Star `gpt-image-2-all` route and local file paths are available, prefer the bundled runner template. Replace `N+M` with the user's actual shorthand:
 
 ```powershell
 & "$env:USERPROFILE\.codex\skills\amazon-recolor\scripts\run-gpt-image2-recolor.ps1" `
@@ -61,15 +61,15 @@ If the task uses the T8Star `gpt-image-2` route and local file paths are availab
 
 The runner parses `N+M`, treats the first `N` paths as source images, treats the last `M` paths as references, and sets `-Parallel` to `N` unless an explicit lower value is passed. Its hard maximum is 10 concurrent jobs.
 
-For the user's local PowerShell runner at `C:\Users\ghost\Desktop\00\run_amazon_recolor_gptimage2.ps1`, pass `-Count`, the actual `-SourceDir`, explicit `-ReferencePaths` when the uploaded reference filename does not follow the automatic `颜色\(N+1).jpg` convention, and the AI-identified `-ColorName`. If `-OutputDir` is omitted, the script creates the output folder under the source directory using `-ColorName`. Example:
+For Amazon chair recolor batches, prefer the packaged PowerShell runner at `scripts/run_amazon_recolor_gptimage2.ps1`. It defaults to `https://ai.t8star.org/v1`, model `gpt-image-2-all`, and an empty `-ApiKey`; if no key is passed and `T8STAR_API_KEY` is not set, it prompts the user to enter the key at runtime. Pass `-Count`, the actual `-SourceDir`, either explicit `-ReferencePaths` or a configurable `-ReferenceDir`, and the AI-identified `-ColorName`. If `-OutputDir` is omitted, the script creates a folder named by `-ColorName` in the current working directory. Example:
 
 ```powershell
-& "C:\Users\ghost\Desktop\00\run_amazon_recolor_gptimage2.ps1" `
+& "$env:USERPROFILE\.codex\skills\amazon-recolor\scripts\run_amazon_recolor_gptimage2.ps1" `
   -Count "8+1" `
   -SourceDir "C:\Users\ghost\Desktop\test" `
-  -ReferencePaths @("C:\Users\ghost\Desktop\test\颜色\2.jpg") `
-  -ColorName "gray" `
-  -TargetFinish "gray wood-grain finish"
+  -ReferenceDir "C:\Users\ghost\Desktop\test\references" `
+  -ColorName "brown" `
+  -TargetFinish "dark brown walnut wood-grain finish"
 ```
 
 Use the system built-in `imagegen` workflow only when the T8Star route is unavailable in the current surface or the user explicitly asks for built-in imagegen.
