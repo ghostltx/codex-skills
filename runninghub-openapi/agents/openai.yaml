@@ -1,0 +1,7 @@
+interface:
+  display_name: "✨ RunningHub OpenAPI"
+  short_description: "Reusable RunningHub API runner"
+  icon_small: "./assets/runninghub-openapi.svg"
+  icon_large: "./assets/runninghub-openapi.svg"
+  brand_color: "#2563EB"
+  default_prompt: "Use RunningHub OpenAPI to submit, poll, and download generation results without storing API keys."

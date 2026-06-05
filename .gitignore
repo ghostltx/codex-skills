@@ -42,3 +42,5 @@ RH-API/**/*.pyc
 !故事板/**
 !NEWAPI-TEST/
 !NEWAPI-TEST/**
+!runninghub-openapi/
+!runninghub-openapi/**

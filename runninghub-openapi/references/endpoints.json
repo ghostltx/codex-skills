@@ -1,0 +1,39 @@
+{
+  "endpoints": [
+    {
+      "endpoint": "rhart-image-n-g31-flash/image-to-image",
+      "task": "image-to-image",
+      "output_type": "image",
+      "name": "RunningHub G3.1 Flash image-to-image",
+      "params": [
+        {"key": "prompt", "type": "STRING", "required": true},
+        {"key": "imageUrls", "type": "IMAGE", "multiple": true, "required": true},
+        {"key": "aspectRatio", "type": "STRING", "required": false, "default": "1:1"},
+        {"key": "resolution", "type": "STRING", "required": false, "default": "2k"}
+      ]
+    },
+    {
+      "endpoint": "rhart-image-g-2/image-to-image",
+      "task": "image-to-image",
+      "output_type": "image",
+      "name": "GPT Image 2 low-price image-to-image",
+      "params": [
+        {"key": "prompt", "type": "STRING", "required": true},
+        {"key": "imageUrls", "type": "IMAGE", "multiple": true, "required": true},
+        {"key": "aspectRatio", "type": "STRING", "required": false, "default": "1:1"},
+        {"key": "resolution", "type": "STRING", "required": false, "default": "2k"}
+      ]
+    },
+    {
+      "endpoint": "rhart-image-g-2/text-to-image",
+      "task": "text-to-image",
+      "output_type": "image",
+      "name": "GPT Image 2 low-price text-to-image",
+      "params": [
+        {"key": "prompt", "type": "STRING", "required": true},
+        {"key": "aspectRatio", "type": "STRING", "required": false, "default": "1:1"},
+        {"key": "resolution", "type": "STRING", "required": false, "default": "2k"}
+      ]
+    }
+  ]
+}

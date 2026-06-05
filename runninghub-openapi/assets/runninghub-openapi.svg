@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="RunningHub OpenAPI">
+  <rect width="128" height="128" rx="28" fill="#111827"/>
+  <path d="M64 16l13.7 31.2 34 3.5-25.4 22.8 7.3 33.4L64 89.7l-29.6 17.2 7.3-33.4-25.4-22.8 34-3.5L64 16z" fill="#facc15"/>
+  <path d="M64 30l8.8 20.1 21.9 2.3-16.4 14.7 4.7 21.5L64 77.5 45 88.6l4.7-21.5-16.4-14.7 21.9-2.3L64 30z" fill="#fff7ed" opacity=".9"/>
+  <circle cx="64" cy="64" r="49" fill="none" stroke="#a78bfa" stroke-width="6" opacity=".8"/>
+</svg>

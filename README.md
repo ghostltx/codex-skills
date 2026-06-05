@@ -4,6 +4,17 @@
 
 ## 版本说明
 
+### v1.23
+
+`v1.23` 更新了 `runninghub-openapi` 的下游调用说明，把本次实测通过的 RunningHub 双参考图 image-to-image 工作流写成固定用法：
+
+- 明确 image-to-image 修图/重生成时，第一张图作为构图和排版主参考，后续图片作为结构、颜色或风格参考。
+- 要求下游 skill 显式传入 `aspectRatio` 和 `resolution` 参数，例如 `aspectRatio=1:1`、`resolution=2k`，避免电商方图被接口默认值影响。
+- 强化任务完成证据：成功后应向用户报告 `TASK_ID:`、`OUTPUT_FILE:`、`COST:` 和 `ELAPSED:`。
+- 本次已用 `rhart-image-n-g31-flash/image-to-image` 完成双图参考重生成实测，输出 `2048x2048` 方图，并成功回传费用和耗时。
+
+简而言之，`v1.23` 让 `runninghub-openapi` 更适合被其他电商图片 skill 复用：能稳定表达多参考图、固定比例分辨率，并保留可追踪的任务结果。
+
 ### v1.22
 
 `v1.22` 修正并强化了 `amazon-recolor-v1.03` 的 T8Star 改色执行链路，让默认行为和实测结果保持一致：
