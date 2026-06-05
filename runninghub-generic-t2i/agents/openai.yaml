@@ -1,4 +1,0 @@
-interface:
-  display_name: "RunningHub Generic T2I"
-  short_description: "Submit text-to-image workflows to RunningHub"
-  default_prompt: "Use RunningHub Generic T2I to send a prompt to a RunningHub text-to-image workflow, poll the task, and download generated images."

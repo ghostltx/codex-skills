@@ -1,4 +1,0 @@
-interface:
-  display_name: "ZZ gpt-image2 T2I"
-  short_description: "Test and generate text-to-image outputs through the T8Star gpt-image-2 API."
-  default_prompt: "Use ZZ-gpt-image2 T2I to test connectivity or generate an image from a text prompt with gpt-image-2."

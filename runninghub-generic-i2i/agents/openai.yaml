@@ -1,4 +1,0 @@
-interface:
-  display_name: "RunningHub Generic I2I"
-  short_description: "Submit local image-to-image workflows to RunningHub"
-  default_prompt: "Use RunningHub Generic I2I to upload local images, send a prompt, create a workflow task, poll for results, and download generated images."

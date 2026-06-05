@@ -4,6 +4,21 @@
 
 ## 版本说明
 
+### v1.25
+
+`v1.25` 清理了个人 skills 仓库中不再需要的 NewAPI、ZZ gpt-image-2 和通用 RunningHub 辅助 skill：
+
+- 删除 `new-api-rim-gpt-image-2-only-1k`。
+- 删除 `NEWAPI-TEST`。
+- 删除 `runninghub-generic-i2i`。
+- 删除 `runninghub-generic-t2i`。
+- 删除 `runninghub-openapi`。
+- 删除 `zz-gpt-image2-i2i`。
+- 删除 `zz-gpt-image2-T2I`。
+- 同步从 `.gitignore` 白名单移除这些目录，避免后续重新被仓库跟踪。
+
+简而言之，`v1.25` 精简仓库，只保留当前仍在使用的个人 skills，减少无用文件和重复工具链。
+
 ### v1.24
 
 `v1.24` 新增并发布了 `RH100` skill，用于 RunningHub 企业级 `rhart-image-n-g31-flash/image-to-image` 批量图生图工作流：
