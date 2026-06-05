@@ -1,0 +1,109 @@
+---
+name: rh100
+description: Use this skill when the user wants to call or integrate the RunningHub enterprise image-to-image OpenAPI endpoint rhart-image-n-g31-flash/image-to-image, including local image upload, public image URL submission, task polling, result download, webhook notes, 100-concurrency guidance, or RH100-specific scripts.
+---
+
+# RH100
+
+RunningHub enterprise image-to-image API helper for the `rhart-image-n-g31-flash/image-to-image` endpoint.
+
+## When To Use
+
+Use this skill when the user mentions RH100, RunningHub enterprise API, the 100-concurrency image-to-image API, `rhart-image-n-g31-flash/image-to-image`, or asks to upload images, submit a generation task, query task status, download results, or build code around this API.
+
+## Core Workflow
+
+1. For local files, upload each image with `scripts/rh100.py --image`.
+2. Submit image-to-image task with `imageUrls`, `prompt`, `aspectRatio`, `resolution`, and enterprise shared `instanceType`.
+3. Read `taskId` from the submission response.
+4. Poll `POST https://www.runninghub.cn/openapi/v2/query` until `SUCCESS` or `FAILED`.
+5. Download every `results[].url` immediately; result URLs expire in 24 hours.
+
+## Script
+
+For one-off single tasks, use the bundled foreground script:
+
+```powershell
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100.py `
+  --image "C:\path\to\input.png" `
+  --prompt "将这张线稿转换为明代水墨武侠风格的精细彩图。" `
+  --aspect-ratio "9:16" `
+  --resolution "1k" `
+  --instance-type "default" `
+  --out-dir ".\outputs"
+```
+
+For public URLs:
+
+```powershell
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100.py `
+  --image-url "https://example.com/input.png" `
+  --prompt "将这张线稿转换为明代水墨武侠风格的精细彩图。" `
+  --aspect-ratio "9:16" `
+  --resolution "1k"
+```
+
+The script currently contains a temporary test API key, but `RUNNINGHUB_API_KEY` overrides it. Prefer setting the environment variable before production use.
+
+## Quiet Batch Runner
+
+For concurrent batches, prefer `scripts/rh100_batch.py`. It saves upload URLs, task IDs, task status, usage, errors, and downloaded result paths to a local JSON file, writes detailed logs to disk, and prints only a short status summary. This avoids flooding the Codex conversation stream with long URLs and frequent polling output.
+
+Recommended pattern:
+
+```powershell
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py run `
+  --image "C:\path\to\image-1.jpg" `
+  --image "C:\path\to\image-2.jpg" `
+  --reference "C:\path\to\reference.jpg" `
+  --prompt-file "C:\path\to\prompt.txt" `
+  --variants 2 `
+  --concurrency 14 `
+  --resolution "2k" `
+  --instance-type "default" `
+  --out-dir "C:\Users\Administrator\Desktop\灰色" `
+  --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json"
+```
+
+To check or resume:
+
+```powershell
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py status `
+  --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json"
+
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py poll `
+  --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json" `
+  --out-dir "C:\Users\Administrator\Desktop\灰色"
+```
+
+If Codex shows `stream disconnected before completion: Upstream request failed`, treat it as a Codex/tool transport interruption, not necessarily an RH100 task failure. Resume by running `status` or `poll` against the saved `rh100_jobs.json`.
+
+When tasks finish, report the final status summary, accumulated task runtime (`usage.taskCostTime`), consumed money (`usage.consumeMoney`), and consumed coins (`usage.consumeCoins`) when the API returns them. If the API returns `null`, show `N/A`.
+
+## API Facts
+
+- Submit endpoint: `POST https://www.runninghub.cn/openapi/v2/rhart-image-n-g31-flash/image-to-image`
+- Query endpoint: `POST https://www.runninghub.cn/openapi/v2/query`
+- Upload endpoint: `POST https://www.runninghub.cn/openapi/v2/media/upload/binary`
+- API concurrency: 100
+- `imageUrls`: required, max 10 images, each image max 30 MB
+- `prompt`: required, 1 to 20000 characters
+- `resolution`: required, enum `1k`, `2k`, `4k`
+- `aspectRatio`: optional, see `references/api.md`
+- `webhookUrl`: optional
+- Enterprise shared key usage requires `instanceType`: `default` for Standard, `plus` for Plus.
+- Lite uses system auto-scheduling; omit `instanceType`.
+- Uploaded media links expire in 1 day
+- Generated result URLs expire in 24 hours
+
+## Instance Types And Billing
+
+All instance types are billed by seconds. When multiple tasks run concurrently, billing is based on the accumulated runtime of all tasks, not the wall-clock concurrent duration.
+
+- Lite: ¥0.4 / hour, system auto-scheduled. Omit `instanceType`.
+- Standard: ¥4 / hour, 24 GB VRAM. Set `instanceType` to `default`.
+- Plus: ¥6 / hour, 48 GB VRAM. Set `instanceType` to `plus`.
+
+## References
+
+Read `references/api.md` when the user needs field details, response examples, webhook behavior, known gaps, or integration notes.

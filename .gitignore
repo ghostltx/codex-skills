@@ -36,6 +36,10 @@ zz-gpt-image2-T2I/scripts/.env
 !RH-API/**
 RH-API/**/__pycache__/
 RH-API/**/*.pyc
+!RH100/
+!RH100/**
+RH100/**/__pycache__/
+RH100/**/*.pyc
 !baokuan-tupian/
 !baokuan-tupian/**
 !故事板/

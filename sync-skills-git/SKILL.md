@@ -17,7 +17,8 @@ https://github.com/ghostltx/codex-skills.git
 
 This shorthand rule applies only to the `ghostltx/codex-skills` repository:
 
-- When the user says `同步`, `推送`, `上传`, `提交 skill`, or similar wording for this repository, upload/push the corresponding skill folder changes to GitHub, update `README.md` with the new version notes, create a version Tag, push the Tag, and create a GitHub Release from that Tag.
+- When the user says `同步`, `推送`, `上传`, `提交 skill`, `发布`, or similar wording for this repository, upload/push the corresponding skill folder changes to GitHub, update `README.md` with the new version notes, create a version Tag, push the Tag, and create a GitHub Release from that Tag.
+- When the user says `发布`, interpret it as: publish a new version, update `README.md` explaining what was upgraded, create and push a version Tag, and upload the release.
 - When the user says `拉取`, list available version Tags first, ask the user which Tag to download, then overwrite tracked local personal skill files from that Tag.
 - Do not apply this shorthand to any other repository or normal project workspace.
 

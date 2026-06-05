@@ -4,6 +4,21 @@
 
 ## 版本说明
 
+### v1.24
+
+`v1.24` 新增并发布了 `RH100` skill，用于 RunningHub 企业级 `rhart-image-n-g31-flash/image-to-image` 批量图生图工作流：
+
+- 将 `RH100/` 加入仓库白名单，纳入个人 skills 同步和版本管理。
+- 新增前台单任务脚本 `RH100/scripts/rh100.py`，支持本地图片上传、任务提交、轮询和结果下载。
+- 新增静默批量脚本 `RH100/scripts/rh100_batch.py`，支持多图、多变体、高并发提交，保存 `rh100_jobs.json`，可断点续查和下载。
+- 批量脚本默认减少终端刷屏，避免 Codex 会话流在高并发任务中被长 URL 和频繁状态输出冲断。
+- 任务结束后汇总状态、累计用时、消耗金额和消耗 coins；接口返回空值时显示 `N/A`。
+- 明确 `instanceType` 计费和机型选择：Lite 省略参数、Standard 使用 `default`、Plus 使用 `plus`。
+- 所有脚本均改为通过 `RUNNINGHUB_API_KEY` 环境变量或显式 `--api-key` 获取密钥，不提交测试 Key。
+- 更新 `sync-skills-git` 说明：以后说“发布”即表示更新 README、提交推送、创建并推送版本 Tag、创建 GitHub Release 的完整发布流程。
+
+简而言之，`v1.24` 把 RH100 高并发改色/图生图流程做成可同步、可恢复、低刷屏的个人 skill，并把“发布”这个口令固定为完整版本发布流程。
+
 ### v1.23
 
 `v1.23` 更新了 `runninghub-openapi` 的下游调用说明，把本次实测通过的 RunningHub 双参考图 image-to-image 工作流写成固定用法：
