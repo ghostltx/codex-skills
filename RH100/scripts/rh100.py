@@ -14,6 +14,8 @@ BASE_URL = "https://www.runninghub.cn/openapi/v2"
 SUBMIT_URL = f"{BASE_URL}/rhart-image-n-g31-flash/image-to-image"
 QUERY_URL = f"{BASE_URL}/query"
 UPLOAD_URL = f"{BASE_URL}/media/upload/binary"
+HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
+DOWNLOAD_TIMEOUT_SECONDS = int(os.environ.get("RH100_DOWNLOAD_TIMEOUT_SECONDS", "120"))
 
 
 def api_key():
@@ -39,7 +41,7 @@ def json_post(url, payload):
 
 def read_json(req):
     try:
-        with request.urlopen(req, timeout=120) as resp:
+        with request.urlopen(req, timeout=HTTP_TIMEOUT_SECONDS) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
     except error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -119,7 +121,7 @@ def query_task(task_id):
 def download(url, out_path):
     req = request.Request(url, method="GET")
     try:
-        with request.urlopen(req, timeout=300) as resp:
+        with request.urlopen(req, timeout=DOWNLOAD_TIMEOUT_SECONDS) as resp:
             content = resp.read()
     except error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
@@ -147,8 +149,9 @@ def main():
     parser.add_argument("--instance-type", default="default", choices=["default", "plus"], help="Enterprise shared instance type")
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--out-dir", default="outputs")
-    parser.add_argument("--poll-seconds", type=int, default=3)
-    parser.add_argument("--max-wait-seconds", type=int, default=600)
+    parser.add_argument("--poll-seconds", type=int, default=10)
+    parser.add_argument("--max-wait-seconds", type=int, default=60)
+    parser.add_argument("--wait", action="store_true", help="Poll briefly after submitting")
     parser.add_argument("--no-wait", action="store_true", help="Submit only; do not poll")
     parser.add_argument("--print-json", action="store_true", help="Print full JSON responses")
     args = parser.parse_args()
@@ -188,7 +191,7 @@ def main():
         error_message = submit.get("errorMessage") or "Submit response has no taskId."
         raise SystemExit(f"Submit failed: {error_code} {error_message}")
 
-    if args.no_wait:
+    if args.no_wait or not args.wait:
         return
 
     start = time.time()

@@ -21,7 +21,7 @@ Use this skill when the user mentions RH100, RunningHub enterprise API, the 100-
 
 ## Script
 
-For one-off single tasks, use the bundled foreground script:
+For one-off single tasks, use the bundled script to submit only, then check status separately. By default `rh100.py` does not wait after submission, which keeps Codex streams short:
 
 ```powershell
 python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100.py `
@@ -32,6 +32,8 @@ python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100.py `
   --instance-type "default" `
   --out-dir ".\outputs"
 ```
+
+Only add `--wait` for quick manual tests. `--wait` defaults to a 60-second maximum foreground wait and should not be used for batches or long generations.
 
 For public URLs:
 
@@ -48,6 +50,8 @@ The script currently contains a temporary test API key, but `RUNNINGHUB_API_KEY`
 ## Quiet Batch Runner
 
 For concurrent batches, prefer `scripts/rh100_batch.py`. It saves upload URLs, task IDs, task status, usage, errors, and downloaded result paths to a local JSON file, writes detailed logs to disk, and prints only a short status summary. This avoids flooding the Codex conversation stream with long URLs and frequent polling output.
+
+Keep Codex foreground runs short. The batch runner defaults to a 60-second polling window (`--max-poll-seconds 60`) so a long generation does not hold one Codex stream open for several minutes. If work is still running, resume with `poll` against the same `rh100_jobs.json`; do not restart the job. Avoid foreground waits longer than 60 seconds in Codex.
 
 Recommended pattern:
 
@@ -78,6 +82,21 @@ python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py poll `
 
 If Codex shows `stream disconnected before completion: Upstream request failed`, treat it as a Codex/tool transport interruption, not necessarily an RH100 task failure. Resume by running `status` or `poll` against the saved `rh100_jobs.json`.
 
+For especially large batches, use `submit` first, then run short `poll` calls:
+
+```powershell
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py submit `
+  --image "C:\path\to\image-1.jpg" `
+  --prompt-file "C:\path\to\prompt.txt" `
+  --job-file "C:\path\to\rh100_jobs.json" `
+  --out-dir "C:\path\to\outputs"
+
+python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py poll `
+  --job-file "C:\path\to\rh100_jobs.json" `
+  --out-dir "C:\path\to\outputs" `
+  --max-poll-seconds 60
+```
+
 When tasks finish, report the final status summary and cost/time evidence from the saved job file:
 
 - `total_time`: accumulated API task runtime from `usage.taskCostTime`.
@@ -86,7 +105,9 @@ When tasks finish, report the final status summary and cost/time evidence from t
 - `consume_coins`: accumulated `usage.consumeCoins` when the API returns it.
 - `third_party_money`: accumulated `usage.thirdPartyConsumeMoney` when present. Some enterprise image-to-image responses return `consumeMoney: null`, `consumeCoins: null`, `taskCostTime: "0"`, but include `thirdPartyConsumeMoney`; in that case report the third-party money as the usable cost field and explain the null official billing fields briefly.
 
-If a field is absent or `null`, show `N/A` rather than guessing.
+If upload time is useful, also mention the inclusive time from upload start to final download. Do not confuse wall-clock generation time with `usage.taskCostTime`.
+
+If a field is absent or `null`, show `N/A` rather than guessing. If `consume_money` is `N/A` but `third_party_money` is present, report both fields so the user still sees the usable cost signal returned by RunningHub.
 
 ## API Facts
 

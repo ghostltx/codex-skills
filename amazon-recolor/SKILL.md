@@ -33,48 +33,21 @@ When the user gives local source images plus reference images and only provides 
 
 ## Generation Routing
 
-Default to the T8Star OpenAI-compatible image editing route with model `gpt-image-2-all` for Amazon recolor tasks unless the user explicitly names another compatible model.
+Default to the system built-in `imagegen` workflow for Amazon recolor tasks. Use built-in image editing at approximately 1k output unless the user explicitly requests another route or resolution.
 
 Default generation settings:
 
-- Base URL: `https://ai.t8star.org/v1`.
-- Model: `gpt-image-2-all`.
-- Size: preserve each source image aspect ratio when possible; otherwise use a valid `gpt-image-2-all` size selected for the source image.
-- Concurrency: `N` from the user's `N+M` shorthand, capped at 10 concurrent source-image edits by default.
-- Use the user's configured T8Star API key from `T8STAR_API_KEY` or a local runner parameter. Do not commit real API keys to the skill repository or generated published scripts.
+- Route: system built-in `imagegen`.
+- Size: approximately 1k, preserving each source image aspect ratio when possible.
+- Inputs: for each edit, use one source image plus the last `M` color/material reference image(s).
+- Outputs: one edited output per source image, saved with clear filenames that map back to the source.
+- Concurrency: use the current built-in `imagegen` surface behavior. Do not assume RunningHub concurrency unless that route is explicitly selected.
 
 When editing source images, submit each source ecommerce image with the target color/material reference image(s), one output per source image, using clear filenames that map back to the source.
 
-If the task uses the T8Star `gpt-image-2-all` route and local file paths are available, prefer the bundled runner template. Replace `N+M` with the user's actual shorthand:
+Use RunningHub OpenAPI image-to-image only when the user explicitly includes or names `runninghub-openapi` for the current request. In that case, follow `runninghub-openapi` rules and run the batch by `N+M` concurrency: submit all `N` source-image modification tasks at the same time, each task receiving its own source image first and the same last `M` reference image(s) after it, then wait for all results and return them together. If RunningHub rejects the requested concurrency, report the error/limit and continue with the highest safe concurrency.
 
-```powershell
-& "$env:USERPROFILE\.codex\skills\amazon-recolor\scripts\run-gpt-image2-recolor.ps1" `
-  -Count "N+M" `
-  -ImagePaths @(
-    "C:\path\1.jpg",
-    "C:\path\2.jpg",
-    "...",
-    "C:\path\reference-1.jpg"
-  ) `
-  -OutputDir "C:\path\output"
-```
-
-The runner parses `N+M`, treats the first `N` paths as source images, treats the last `M` paths as references, and sets `-Parallel` to `N` unless an explicit lower value is passed. Its hard maximum is 10 concurrent jobs.
-
-For Amazon chair recolor batches, prefer the packaged PowerShell runner at `scripts/run_amazon_recolor_gptimage2.ps1`. It defaults to `https://ai.t8star.org/v1`, model `gpt-image-2-all`, and an empty `-ApiKey`; if no key is passed and `T8STAR_API_KEY` is not set, it prompts the user to enter the key at runtime. Pass `-Count`, the actual `-SourceDir`, either explicit `-ReferencePaths` or a configurable `-ReferenceDir`, and the AI-identified `-ColorName`. If `-OutputDir` is omitted, the script creates a folder named by `-ColorName` in the current working directory. Example:
-
-```powershell
-& "$env:USERPROFILE\.codex\skills\amazon-recolor\scripts\run_amazon_recolor_gptimage2.ps1" `
-  -Count "8+1" `
-  -SourceDir "C:\Users\ghost\Desktop\test" `
-  -ReferenceDir "C:\Users\ghost\Desktop\test\references" `
-  -ColorName "brown" `
-  -TargetFinish "dark brown walnut wood-grain finish"
-```
-
-Use the system built-in `imagegen` workflow only when the T8Star route is unavailable in the current surface or the user explicitly asks for built-in imagegen.
-
-Use RunningHub image-to-image only when the user explicitly asks to combine this skill with `runninghub-generic-i2i`, names RunningHub/I2I as the desired route, or otherwise clearly requests the external I2I workflow for the current task.
+Use other RunningHub image-to-image skills only when the user explicitly asks to combine this skill with that specific RunningHub skill, names RunningHub/I2I as the desired route, or otherwise clearly requests the external I2I workflow for the current task.
 
 ## Workflow
 
@@ -87,7 +60,8 @@ Use RunningHub image-to-image only when the user explicitly asks to combine this
 7. Generate one output per source image by default.
 8. Use clear output names that map to the source image, not generic names that can hide duplicates.
 9. Check for duplicate outputs, missing source coverage, color mismatch, reference layout leakage, damaged text, and leftover original color.
-10. Track elapsed time from generation submission start until all outputs are received and saved; report the total elapsed time in the final response. When using the local PowerShell runner, read and report its `ELAPSED_SECONDS` / `ELAPSED` lines.
+10. Track elapsed time from generation submission start until all outputs are received and saved; report the total elapsed time in the final response. When using the local PowerShell runner, read and report its `ELAPSED_SECONDS` / `ELAPSED` lines. When using RunningHub/RH100, report wall-clock generation time from first task submission to final download/final success summary, optionally also including upload-to-final time.
+11. For paid API routes, include the returned cost fields in the final response. For RH100 specifically, report `usage.consumeMoney`, `usage.consumeCoins`, and `usage.thirdPartyConsumeMoney` totals when present; if `consumeMoney`/`consumeCoins` are null but `thirdPartyConsumeMoney` is present, show `consumeMoney=N/A`, `consumeCoins=N/A`, and the summed third-party consumed money instead of omitting the cost.
 
 For detailed QA language, read `references/recolor-qa.md` when preparing final prompts or reviewing outputs.
 

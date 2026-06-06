@@ -197,7 +197,11 @@ def poll_loop(data, args, job_file, log_path):
                 save_jobs(job_file, data)
 
         log_line(log_path, "summary " + build_status_line(data))
-        time.sleep(args.poll_seconds)
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            log_line(log_path, "poll window ended; rerun poll to continue")
+            return
+        time.sleep(min(args.poll_seconds, remaining))
 
 
 def as_float(value):
@@ -341,7 +345,7 @@ def main():
     parser.add_argument("--instance-type", default="default", choices=["default", "plus"])
     parser.add_argument("--api-key", default="", help="Use this key for this run instead of RUNNINGHUB_API_KEY")
     parser.add_argument("--poll-seconds", type=int, default=15)
-    parser.add_argument("--max-poll-seconds", type=int, default=240)
+    parser.add_argument("--max-poll-seconds", type=int, default=60)
     args = parser.parse_args()
 
     if args.api_key:
