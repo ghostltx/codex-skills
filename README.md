@@ -4,6 +4,18 @@
 
 ## 版本说明
 
+### v1.26
+
+`v1.26` 升级了 `RH100` 的任务耗时和金额汇总，让批量图生图完成后更容易直接给用户报告结果：
+
+- `RH100/scripts/rh100_batch.py` 新增 `wall_time`，根据最早提交时间和最晚完成时间计算真实等待耗时。
+- 新增 `third_party_money` 汇总，读取 RunningHub 返回的 `usage.thirdPartyConsumeMoney`，避免 `consumeMoney` / `consumeCoins` 为空时漏报可用费用。
+- 单任务日志的 `usage` 输出也会显示 `third_party_money`，便于排查每张图的实际消耗。
+- 金额输出统一使用 ASCII 的 `CNY` 前缀，避免 Windows PowerShell/GBK 控制台打印 `¥` 时出现编码错误。
+- `RH100/SKILL.md` 补充说明：当 `taskCostTime` 返回 `0` 或官方消费字段为 `null` 时，应报告 `wall_time` 和 `thirdPartyConsumeMoney`，缺失字段显示 `N/A`。
+
+简而言之，`v1.26` 让 RH100 批量任务的最终汇报能稳定写成“总时长多少、共消耗多少钱”，而不是只露出一串调试状态字段。
+
 ### v1.25
 
 `v1.25` 清理了个人 skills 仓库中不再需要的 NewAPI、ZZ gpt-image-2 和通用 RunningHub 辅助 skill：

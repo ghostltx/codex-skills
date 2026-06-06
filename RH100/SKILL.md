@@ -78,7 +78,15 @@ python C:\Users\Administrator\.codex\skills\RH100\scripts\rh100_batch.py poll `
 
 If Codex shows `stream disconnected before completion: Upstream request failed`, treat it as a Codex/tool transport interruption, not necessarily an RH100 task failure. Resume by running `status` or `poll` against the saved `rh100_jobs.json`.
 
-When tasks finish, report the final status summary, accumulated task runtime (`usage.taskCostTime`), consumed money (`usage.consumeMoney`), and consumed coins (`usage.consumeCoins`) when the API returns them. If the API returns `null`, show `N/A`.
+When tasks finish, report the final status summary and cost/time evidence from the saved job file:
+
+- `total_time`: accumulated API task runtime from `usage.taskCostTime`.
+- `wall_time`: elapsed wall-clock time from the earliest `submittedAt` to the latest `finishedAt`; use this when `usage.taskCostTime` is missing or returns `0`.
+- `consume_money`: accumulated `usage.consumeMoney` when the API returns it.
+- `consume_coins`: accumulated `usage.consumeCoins` when the API returns it.
+- `third_party_money`: accumulated `usage.thirdPartyConsumeMoney` when present. Some enterprise image-to-image responses return `consumeMoney: null`, `consumeCoins: null`, `taskCostTime: "0"`, but include `thirdPartyConsumeMoney`; in that case report the third-party money as the usable cost field and explain the null official billing fields briefly.
+
+If a field is absent or `null`, show `N/A` rather than guessing.
 
 ## API Facts
 

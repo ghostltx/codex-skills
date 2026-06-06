@@ -229,6 +229,10 @@ def collect_usage(data):
     has_money = False
     total_coins = 0.0
     has_coins = False
+    total_third_party_money = 0.0
+    has_third_party_money = False
+    submitted_times = []
+    finished_times = []
 
     for job in data.get("jobs", []):
         usage = job.get("usage") or {}
@@ -244,11 +248,30 @@ def collect_usage(data):
         if coins is not None:
             total_coins += coins
             has_coins = True
+        third_party_money = as_float(usage.get("thirdPartyConsumeMoney"))
+        if third_party_money is not None:
+            total_third_party_money += third_party_money
+            has_third_party_money = True
+        if job.get("submittedAt"):
+            submitted_times.append(job["submittedAt"])
+        if job.get("finishedAt"):
+            finished_times.append(job["finishedAt"])
+
+    wall_seconds = None
+    if submitted_times and finished_times:
+        try:
+            started = datetime.strptime(min(submitted_times), "%Y-%m-%d %H:%M:%S")
+            finished = datetime.strptime(max(finished_times), "%Y-%m-%d %H:%M:%S")
+            wall_seconds = max(0.0, (finished - started).total_seconds())
+        except ValueError:
+            wall_seconds = None
 
     return {
         "seconds": total_seconds if has_seconds else None,
         "money": total_money if has_money else None,
         "coins": total_coins if has_coins else None,
+        "third_party_money": total_third_party_money if has_third_party_money else None,
+        "wall_seconds": wall_seconds,
     }
 
 
@@ -257,9 +280,15 @@ def format_usage(usage):
     seconds = as_float(usage.get("taskCostTime"))
     money = as_float(usage.get("consumeMoney"))
     coins = as_float(usage.get("consumeCoins"))
+    third_party_money = as_float(usage.get("thirdPartyConsumeMoney"))
     parts = [f"time={format_seconds(seconds)}"]
-    parts.append(f"money=¥{money:.6f}" if money is not None else "money=N/A")
+    parts.append(f"money=CNY{money:.6f}" if money is not None else "money=N/A")
     parts.append(f"coins={coins:.6f}" if coins is not None else "coins=N/A")
+    parts.append(
+        f"third_party_money=CNY{third_party_money:.6f}"
+        if third_party_money is not None
+        else "third_party_money=N/A"
+    )
     return " ".join(parts)
 
 
@@ -271,9 +300,18 @@ def build_status_line(data):
     usage = collect_usage(data)
     money = usage["money"]
     coins = usage["coins"]
-    money_text = f"¥{money:.6f}" if money is not None else "N/A"
+    third_party_money = usage["third_party_money"]
+    money_text = f"CNY{money:.6f}" if money is not None else "N/A"
     coins_text = f"{coins:.6f}" if coins is not None else "N/A"
-    return f"{status} total_time={format_seconds(usage['seconds'])} consume_money={money_text} consume_coins={coins_text}"
+    third_party_money_text = (
+        f"CNY{third_party_money:.6f}" if third_party_money is not None else "N/A"
+    )
+    return (
+        f"{status} total_time={format_seconds(usage['seconds'])} "
+        f"wall_time={format_seconds(usage['wall_seconds'])} "
+        f"consume_money={money_text} consume_coins={coins_text} "
+        f"third_party_money={third_party_money_text}"
+    )
 
 
 def print_status(data):
