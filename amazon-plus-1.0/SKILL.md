@@ -309,6 +309,16 @@ For full sets, keep final deliverables organized with `source/`, `line-art/`, an
 
 For explicit multi-platform stability tests, such as a user asking to generate one set each with A, B, and C, create separate mode folders under one test deliverable folder, such as `mode-a-imagegen/`, `mode-b-rh-i2i/`, and `mode-c-zz-gpt-image2/`. This is a request-specific test workflow only and does not change the default behavior: normally generate with the single chosen or routed mode, and ask the generation-mode question when no mode or resolution route is specified.
 
+## Short Completion Default
+
+To reduce Codex stream disconnects on long image-generation runs, the default end-of-run behavior is short completion:
+
+- When generation finishes and result files are already saved by the generation tool, immediately report the status summary, count, output folder or job file, elapsed time, and cost fields when available.
+- Do not automatically reorganize generated files into `outputs`, `secondary/`, or `a-plus/` after the generation step unless the user explicitly asks for整理, copying, packaging, or a final deliverable folder.
+- Do not automatically generate QA overview/contact-sheet images unless the user explicitly asks for QA 总览图, contact sheet, preview board, or visual comparison.
+- Do not automatically open images in the browser or image viewer unless the user explicitly asks to打开, inspect visually, preview, or check the result.
+- If the user requests Amazon-ready final packaging, then perform the organization and QA steps below. Otherwise, treat saved generated files plus the short status report as complete.
+
 For default full visual sets:
 
 - Create one deliverable folder with separate `secondary/` and `a-plus/` folders.
@@ -318,7 +328,7 @@ For default full visual sets:
 - Use filenames that preserve set order, such as `secondary_01_lifestyle_hero_4x5.png` through `secondary_09_trust_service_4x5.png`, and `a-plus_01_brand_lifestyle_banner.png` through `a-plus_09_closing_trust_banner.png`.
 - Ensure the user can open the final folder and see 18 generated deliverables organized as 9 secondary images plus 9 A+ modules.
 
-Before final delivery:
+Before final delivery, only when the user requested Amazon-ready final packaging, QA, or organized deliverables:
 
 - Verify every final image path exists.
 - For default full visual sets, verify the final deliverable contains exactly 9 secondary images and 9 A+ modules, with no default copied white-background main image mixed into the generated deliverables.

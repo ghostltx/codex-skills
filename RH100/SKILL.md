@@ -53,6 +53,37 @@ For concurrent batches, prefer `scripts/rh100_batch.py`. It saves upload URLs, t
 
 Keep Codex foreground runs short. The batch runner defaults to a 60-second polling window (`--max-poll-seconds 60`) so a long generation does not hold one Codex stream open for several minutes. If work is still running, resume with `poll` against the same `rh100_jobs.json`; do not restart the job. Avoid foreground waits longer than 60 seconds in Codex.
 
+## Default Codex Batch Cadence
+
+When Codex is handling RH100 batch work for the user end-to-end, prefer this foreground cadence instead of a long continuous wait:
+
+1. Submit all tasks first.
+2. Wait about 60 seconds before the first poll.
+3. Then run up to 2 additional short polls at about 30-second intervals.
+4. Stop after these 3 poll checks total, even if some tasks are still running.
+5. If the batch is still incomplete, report how many are done, how many remain, and which outputs are already downloaded. Do not keep the same Codex foreground stream open indefinitely.
+
+This cadence is preferred because it reduces the chance of Codex transport interruptions such as `stream disconnected before completion: Upstream request failed` while still giving most batches enough time to finish in the foreground.
+
+When reporting batch progress after each poll, present the status in image-sequence order using a compact multi-column table, usually 4 columns and optionally 5 columns when filenames are short enough. Use `✅` for completed/downloaded images and `❌` for images not yet completed. Put the emoji first so the user can judge completion at a glance. Example:
+
+| 状态 | 状态 | 状态 | 状态 |
+| --- | --- | --- | --- |
+| ✅ 2.jpg | ✅ 3.jpg | ❌ 4.jpg | ❌ 5.jpg |
+| ✅ 6.jpg | ✅ 7.jpg | ✅ 8.jpg |  |
+
+Default completion behavior:
+
+- When all RH100 tasks reach `SUCCESS` or a terminal mixed status, stop after reporting the concise status summary from the job file.
+- Do not automatically run downstream packaging, file reorganization, QA overview/contact-sheet generation, or image opening/inspection after RH100 completes unless the user explicitly asks for those follow-up steps.
+- The saved `rh100_jobs.json`, downloaded result paths, log file, count, wall time, and cost fields are the completion report.
+- Prefer concise user-facing completion formatting:
+  - Show the result directory with a `📁` icon instead of the literal label `结果目录`.
+  - Show wall-clock elapsed time with a `🕒` icon.
+  - Show monetary totals with a `💰` icon instead of the text prefix `CNY`.
+  - Omit verbose per-file output lists when the result directory link is already provided.
+  - Omit `consumeMoney = N/A`, `consumeCoins = N/A`, and record-file sections unless the user explicitly asks for those details.
+
 Recommended pattern:
 
 ```powershell
