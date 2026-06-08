@@ -34,7 +34,7 @@ $rbB.Font = $font
 $form.Controls.Add($rbB)
 
 $rbC = New-Object System.Windows.Forms.RadioButton
-$rbC.Text = "C: ZZ gpt-image-2 - (2K-0.04/pic)"
+$rbC.Text = 'C: RunningHub API - (1K/2K-0.16/pic , 100-Connection)'
 $rbC.Location = New-Object System.Drawing.Point(28, 138)
 $rbC.Size = New-Object System.Drawing.Size(450, 24)
 $rbC.Font = $font

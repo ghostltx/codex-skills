@@ -4,6 +4,19 @@
 
 ## 版本说明
 
+### v1.28
+
+`v1.28` 升级了 `amazon-plus-1.0` 的 Mode C 路线，把已停用的 `ZZ gpt-image-2 / T8Star` 选项彻底替换为 `RH100` 的 RunningHub 企业 API：
+
+- `amazon-plus-1.0/SKILL.md` 中的 Mode C 从 `ZZ gpt-image-2` 改为 `RunningHub API`，对外展示为 `C: RunningHub API - (1K/2K-0.16/pic , 100-Connection)`。
+- 自动路由规则同步更新：以后用户明确提到 `RH100`、`RunningHub API`、`RunningHub enterprise API` 或 `rhart-image-n-g31-flash/image-to-image` 时，直接走 Mode C。
+- 删除 `amazon-plus-1.0` 中所有旧的 `ZZ gpt-image-2` / `T8Star` 功能说明、测试目录命名和完成汇报口径，避免继续把退役路线当成可用能力。
+- 为 Mode C 补齐新的可执行工作流说明，明确通过 `RH100/scripts/rh100_batch.py` 提交、轮询、恢复和批量输出，不再依赖旧的 ZZ 路线。
+- 更新 `amazon-plus-1.0/scripts/select_mode_cli.ps1` 和 `select_mode_dialog.ps1` 的单选文案，使交互界面与新 Mode C 定义保持一致。
+- 本地回归测试已确认 `select_mode_cli.ps1` 可正常显示新选项并接受 `C` 返回结果，同时 `RH100` 的 `rh100.py --help` 与 `rh100_batch.py --help` 均能正常运行。
+
+简而言之，`v1.28` 把 `amazon-plus-1.0` 的 C 选项正式切换成 `RH100` 高并发企业 API 路线，旧的 ZZ/T8Star 入口和说明已清理掉，后续使用和维护都会更统一。
+
 ### v1.27
 
 `v1.27` 主要升级了 `RH100` 的 Codex 前台执行节奏和用户可见汇报格式，同时补充 `amazon-plus-1.0` 的短完成默认规则，目标是减少长任务时的断流风险，并让结果汇报更简洁：
