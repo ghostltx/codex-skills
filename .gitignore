@@ -20,6 +20,8 @@ amazon-images-reviews/**/*.pyc
 !fantui/**
 !amazon-recolor/
 !amazon-recolor/**
+!hive-ai-content-check/
+!hive-ai-content-check/**
 !RH-API/
 !RH-API/**
 RH-API/**/__pycache__/

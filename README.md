@@ -4,6 +4,16 @@
 
 ## 版本说明
 
+### v1.30
+
+`v1.30` 新增了 `hive-ai-content-check` 这个个人 skill，并把它纳入仓库白名单，方便同步 Hive Moderation 的 AI 图像/深伪检测能力：
+
+- 新增 `hive-ai-content-check/` 目录，包含面向 Hive AI content detection 的 skill 说明与参考链接。
+- 将 `hive-ai-content-check` 加入仓库白名单，允许它参与 git 跟踪、版本 Tag 和 GitHub Release 流程。
+- 该 skill 以后可用于回答 Hive 是否免费、每天多少次、以及如何解释检测结果界面。
+
+简而言之，`v1.30` 让 Hive 检测相关内容从“临时可用”变成“可版本化发布”的正式个人 skill。
+
 ### v1.29
 
 `v1.29` 统一了 `RH100-T2I` 的目录命名，并新增了三个个人 skill 的白名单和仓库收录：
