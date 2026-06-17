@@ -32,10 +32,10 @@ RH100/**/*.pyc
 !RH100-I2I/**
 RH100-I2I/**/__pycache__/
 RH100-I2I/**/*.pyc
-!rh100-t2i/
-!rh100-t2i/**
-rh100-t2i/**/__pycache__/
-rh100-t2i/**/*.pyc
+!RH100-T2I/
+!RH100-T2I/**
+RH100-T2I/**/__pycache__/
+RH100-T2I/**/*.pyc
 !baokuan-tupian/
 !baokuan-tupian/**
 !三板方桌/

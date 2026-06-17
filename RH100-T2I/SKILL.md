@@ -1,5 +1,5 @@
 ---
-name: rh100-t2i
+name: RH100-T2I
 description: Use this skill when the user wants to call RunningHub RH100 / enterprise text-to-image API endpoint rhart-image-n-g31-flash/text-to-image, including prompt-based image generation, task polling, result download, webhook notes, 100-concurrency guidance, or RH100-T2I-specific scripts. Supports 文生图, 文字生成图片, RunningHub 文生图, and nano-banana2 Gemini 3.1 Flash text-to-image requests.
 ---
 
@@ -19,7 +19,7 @@ RunningHub enterprise text-to-image API helper for the `rhart-image-n-g31-flash/
 Use the bundled script for one-off tasks. By default it submits only and exits, which keeps Codex streams short:
 
 ```powershell
-python C:\Users\ghost\.codex\skills\rh100-t2i\scripts\rh100_t2i.py `
+python C:\Users\ghost\.codex\skills\RH100-T2I\scripts\rh100_t2i.py `
   --prompt "一幅精美的明代国漫风格插画，一位穿着飞鱼服的锦衣卫站在古老城墙上，俯瞰京城夜景。" `
   --aspect-ratio "1:1" `
   --resolution "2k" `
@@ -30,12 +30,12 @@ python C:\Users\ghost\.codex\skills\rh100-t2i\scripts\rh100_t2i.py `
 Only add `--wait` for quick manual tests. `--wait` defaults to a 60-second maximum foreground wait and should not be used for batches or long generations.
 
 ```powershell
-python C:\Users\ghost\.codex\skills\rh100-t2i\scripts\rh100_t2i.py `
+python C:\Users\ghost\.codex\skills\RH100-T2I\scripts\rh100_t2i.py `
   --prompt "高端电商海报风格，一套户外庭院桌椅，白色背景，柔和自然光。" `
   --aspect-ratio "1:1" `
   --resolution "2k" `
   --wait `
-  --out-dir "C:\Users\ghost\Desktop\rh100-t2i"
+  --out-dir "C:\Users\ghost\Desktop\RH100-T2I"
 ```
 
 The script does not contain a built-in API key. Set `RUNNINGHUB_API_KEY` before use. For a dedicated key, set `RH100_T2I_API_KEY`; it takes precedence over `RUNNINGHUB_API_KEY`. `--api-key` is available only for one-off tests and should not be saved in prompts or files.
