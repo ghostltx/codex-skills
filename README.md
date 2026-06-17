@@ -4,6 +4,16 @@
 
 ## 版本说明
 
+### v1.29
+
+`v1.29` 新增并发布了三个个人 skill 的白名单和仓库收录：
+
+- 将 `RH100-I2I`、`rh100-t2i` 和 `三板方桌` 加入仓库白名单，允许它们被 git 正常跟踪与同步。
+- 为 `RH100-I2I` 与 `rh100-t2i` 补充缓存忽略规则，避免把 `__pycache__` 和 `.pyc` 文件一起发布。
+- 这次发布后，这三个 skill 可以像其他个人 skill 一样参与版本 Tag 和 GitHub Release 流程。
+
+简而言之，`v1.29` 让这三个 skill 从“本地可用但未入库”变成“可版本化发布”的正式个人 skills。
+
 ### v1.28
 
 `v1.28` 升级了 `amazon-plus-1.0` 的 Mode C 路线，把已停用的 `ZZ gpt-image-2 / T8Star` 选项彻底替换为 `RH100` 的 RunningHub 企业 API：

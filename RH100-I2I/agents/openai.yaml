@@ -1,0 +1,4 @@
+interface:
+  display_name: "RH100-I2I"
+  short_description: "RunningHub RH100 企业图生图调用工具"
+  default_prompt: "用 RH100-I2I 图生图："

@@ -1,0 +1,5 @@
+interface:
+  display_name: "三板方桌"
+  short_description: "三板方桌产品规格与纹理记录"
+  default_prompt: "Use $三板方桌 to recall the single-layer and double-layer three-plank square table specs."
+

@@ -28,7 +28,17 @@ RH-API/**/*.pyc
 !RH100/**
 RH100/**/__pycache__/
 RH100/**/*.pyc
+!RH100-I2I/
+!RH100-I2I/**
+RH100-I2I/**/__pycache__/
+RH100-I2I/**/*.pyc
+!rh100-t2i/
+!rh100-t2i/**
+rh100-t2i/**/__pycache__/
+rh100-t2i/**/*.pyc
 !baokuan-tupian/
 !baokuan-tupian/**
+!三板方桌/
+!三板方桌/**
 !故事板/
 !故事板/**
