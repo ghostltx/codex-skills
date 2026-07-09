@@ -1,15 +1,15 @@
 ---
-name: rh100-i2i
-description: Use this skill when the user wants to call or integrate the RunningHub enterprise image-to-image OpenAPI endpoint rhart-image-n-g31-flash/image-to-image, including local image upload, public image URL submission, task polling, result download, webhook notes, 100-concurrency guidance, or RH100-I2I-specific scripts. Supports 图生图, image-to-image, and RunningHub RH100-I2I requests.
+name: 图生图
+description: Use this skill when the user wants to call or integrate the RunningHub enterprise image-to-image OpenAPI endpoint rhart-image-n-g31-flash/image-to-image, including local image upload, public image URL submission, task polling, result download, webhook notes, 100-concurrency guidance, or 图生图-specific scripts. Supports 图生图, image-to-image, and RunningHub 图生图 requests.
 ---
 
-# RH100-I2I
+# 图生图
 
 RunningHub enterprise image-to-image API helper for the `rhart-image-n-g31-flash/image-to-image` endpoint.
 
 ## When To Use
 
-Use this skill when the user mentions RH100-I2I, RunningHub enterprise image-to-image API, the 100-concurrency image-to-image API, `rhart-image-n-g31-flash/image-to-image`, or asks to upload images, submit a generation task, query task status, download results, or build code around this API.
+Use this skill when the user mentions 图生图, RunningHub enterprise image-to-image API, the 100-concurrency image-to-image API, `rhart-image-n-g31-flash/image-to-image`, or asks to upload images, submit a generation task, query task status, download results, or build code around this API.
 
 ## Core Workflow
 
@@ -24,7 +24,7 @@ Use this skill when the user mentions RH100-I2I, RunningHub enterprise image-to-
 For one-off single tasks, use the bundled script to submit only, then check status separately. By default `rh100_i2i.py` does not wait after submission, which keeps Codex streams short:
 
 ```powershell
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i.py `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i.py `
   --image "C:\path\to\input.png" `
   --prompt "将这张线稿转换为明代水墨武侠风格的精细彩图。" `
   --aspect-ratio "9:16" `
@@ -38,7 +38,7 @@ Only add `--wait` for quick manual tests. `--wait` defaults to a 60-second maxim
 For public URLs:
 
 ```powershell
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i.py `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i.py `
   --image-url "https://example.com/input.png" `
   --prompt "将这张线稿转换为明代水墨武侠风格的精细彩图。" `
   --aspect-ratio "9:16" `
@@ -55,7 +55,7 @@ Keep Codex foreground runs short. Use `submit` first, then short `poll` windows.
 
 ## Default Codex Batch Cadence
 
-When Codex is handling RH100-I2I batch work for the user end-to-end, prefer this foreground cadence instead of a long continuous wait:
+When Codex is handling 图生图 batch work for the user end-to-end, prefer this foreground cadence instead of a long continuous wait:
 
 1. Submit all tasks first.
 2. Wait about 60 seconds before the first poll.
@@ -74,8 +74,8 @@ When reporting batch progress after each poll, present the status in image-seque
 
 Default completion behavior:
 
-- When all RH100-I2I tasks reach `SUCCESS` or a terminal mixed status, stop after reporting the concise status summary from the job file.
-- Do not automatically run downstream packaging, file reorganization, QA overview/contact-sheet generation, or image opening/inspection after RH100-I2I completes unless the user explicitly asks for those follow-up steps.
+- When all 图生图 tasks reach `SUCCESS` or a terminal mixed status, stop after reporting the concise status summary from the job file.
+- Do not automatically run downstream packaging, file reorganization, QA overview/contact-sheet generation, or image opening/inspection after 图生图 completes unless the user explicitly asks for those follow-up steps.
 - The saved `rh100_jobs.json`, downloaded result paths, log file, count, wall time, and cost fields are the completion report.
 - Prefer concise user-facing completion formatting:
   - Show the result directory with a `📁` icon instead of the literal label `结果目录`.
@@ -87,7 +87,7 @@ Default completion behavior:
 Recommended pattern:
 
 ```powershell
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py submit `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i_batch.py submit `
   --image "C:\path\to\image-1.jpg" `
   --image "C:\path\to\image-2.jpg" `
   --reference "C:\path\to\reference.jpg" `
@@ -99,7 +99,7 @@ python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py submit 
   --out-dir "C:\Users\Administrator\Desktop\灰色" `
   --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json"
 
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py poll `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i_batch.py poll `
   --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json" `
   --out-dir "C:\Users\Administrator\Desktop\灰色" `
   --poll-seconds 30 `
@@ -109,10 +109,10 @@ python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py poll `
 To check or resume:
 
 ```powershell
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py status `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i_batch.py status `
   --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json"
 
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py poll `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i_batch.py poll `
   --job-file "C:\Users\Administrator\Desktop\灰色\rh100_jobs.json" `
   --out-dir "C:\Users\Administrator\Desktop\灰色"
 ```
@@ -122,13 +122,13 @@ If Codex shows `stream disconnected before completion: Upstream request failed`,
 Use `submit` first, then run short `poll` calls:
 
 ```powershell
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py submit `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i_batch.py submit `
   --image "C:\path\to\image-1.jpg" `
   --prompt-file "C:\path\to\prompt.txt" `
   --job-file "C:\path\to\rh100_jobs.json" `
   --out-dir "C:\path\to\outputs"
 
-python C:\Users\ghost\.codex\skills\RH100-I2I\scripts\rh100_i2i_batch.py poll `
+python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i_batch.py poll `
   --job-file "C:\path\to\rh100_jobs.json" `
   --out-dir "C:\path\to\outputs" `
   --max-poll-seconds 60

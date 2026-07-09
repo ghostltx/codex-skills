@@ -329,7 +329,7 @@ def read_prompt(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RH100 quiet resumable batch runner")
+    parser = argparse.ArgumentParser(description="图生图 quiet resumable batch runner")
     parser.add_argument("command", choices=["submit", "poll", "status"])
     parser.add_argument("--image", action="append", default=[], help="Target local image path or public URL")
     parser.add_argument("--reference", action="append", default=[], help="Reference local image path or public URL")

@@ -139,11 +139,11 @@ def download(url, out_path):
 def result_filename(result, index):
     ext = result.get("outputType") or "bin"
     node_id = result.get("nodeId") or index
-    return f"rh100_i2i_{int(time.time())}_node{node_id}_{index}.{ext}"
+    return f"tushengtu_{int(time.time())}_node{node_id}_{index}.{ext}"
 
 
 def main():
-    parser = argparse.ArgumentParser(description="RH100-I2I RunningHub image-to-image client")
+    parser = argparse.ArgumentParser(description="图生图 RunningHub image-to-image client")
     parser.add_argument("--image", action="append", default=[], help="Local image file to upload")
     parser.add_argument("--image-url", action="append", default=[], help="Public image URL")
     parser.add_argument("--prompt", required=True, help="Prompt text")

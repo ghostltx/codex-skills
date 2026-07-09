@@ -1,4 +1,4 @@
-# RH100-I2I RunningHub API Reference
+# 图生图 RunningHub API Reference
 
 ## Endpoint
 
