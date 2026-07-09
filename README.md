@@ -4,6 +4,17 @@
 
 ## 版本说明
 
+### v1.31
+
+`v1.31` 新增并发布了 `XeliasAI PPT` 这个个人 skill，并把它加入仓库白名单，方便跨设备同步 HTML/PPTX/PDF 演示文稿生成能力：
+
+- 将 `XeliasAI PPT/` 加入 `.gitignore` 白名单，允许它参与 git 跟踪、版本 Tag 和 GitHub Release 流程。
+- 收录 `XeliasAI PPT` 的 skill 说明、风格预览图、12 套主题运行时、页面布局契约、示例 JSON 和渲染/导出脚本。
+- 保留 skill 内部缓存排除规则，避免把 `project/node_modules/`、`project/output/`、截图、临时上传和日志一起发布。
+- 该 skill 可用于把自然语言需求整理为 `goal.json`，生成可离线打开、可在浏览器编辑并支持导出 PPTX/PDF 的 HTML 横向翻页演示。
+
+简而言之，`v1.31` 让 XeliasAI PPT 从本地可用能力变成可版本化同步和发布的正式个人 skill。
+
 ### v1.30
 
 `v1.30` 新增了 `hive-ai-content-check` 这个个人 skill，并把它纳入仓库白名单，方便同步 Hive Moderation 的 AI 图像/深伪检测能力：
