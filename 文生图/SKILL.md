@@ -16,7 +16,8 @@ Default action:
 1. Run the bundled script immediately with the provided prompt.
 2. Submit the task and print/report the `taskId` and status.
 3. If the submit response already includes `results[].url`, download the files immediately.
-4. If the task is still asynchronous, stop after submission unless the user explicitly requested waiting, polling, or downloading later.
+4. If the task is asynchronous, keep a short foreground poll by default so completed images are downloaded.
+5. Stop polling only after success/download, failure, or the configured foreground wait limit.
 
 Use this minimal command shape by default:
 
@@ -26,22 +27,25 @@ python C:\Users\ghost\.codex\skills\文生图\scripts\rh100_t2i.py `
   --aspect-ratio "1:1" `
   --resolution "2k" `
   --instance-type "default" `
+  --wait `
+  --poll-seconds 10 `
+  --max-wait-seconds 120 `
   --out-dir ".\outputs"
 ```
 
-Only add `--wait` when the user explicitly asks to wait for results in the foreground. Only rewrite or enrich the prompt when the user asks for prompt engineering.
+Use `--no-wait` only when the user explicitly asks for submit-only behavior. Only rewrite or enrich the prompt when the user asks for prompt engineering.
 
 ## Core Workflow
 
 1. Submit a text-to-image task with `prompt`, `aspectRatio`, `resolution`, and enterprise shared `instanceType`.
 2. Read `taskId` from the submission response.
-3. Do not poll by default. If the submit response is already `SUCCESS` and includes `results[].url`, download those files immediately.
+3. Poll `POST https://www.runninghub.cn/openapi/v2/query` by default for a short foreground window so result URLs can be downloaded.
 4. For automatic no-poll result delivery, pass `webhookUrl`; RunningHub will POST the final task payload to that endpoint when supported.
-5. Only poll `POST https://www.runninghub.cn/openapi/v2/query` when `--wait` is explicitly requested. Download every `results[].url` immediately; result URLs expire in 24 hours.
+5. Download every `results[].url` immediately; result URLs expire in 24 hours.
 
 ## Script
 
-Use the bundled script for one-off tasks. By default it submits only and exits, which keeps Codex streams short:
+Use the bundled script for one-off tasks. By default, keep a short poll so the generated image can be downloaded:
 
 ```powershell
 python C:\Users\ghost\.codex\skills\文生图\scripts\rh100_t2i.py `
@@ -49,12 +53,15 @@ python C:\Users\ghost\.codex\skills\文生图\scripts\rh100_t2i.py `
   --aspect-ratio "1:1" `
   --resolution "2k" `
   --instance-type "default" `
+  --wait `
+  --poll-seconds 10 `
+  --max-wait-seconds 120 `
   --out-dir ".\outputs"
 ```
 
-If RunningHub ever returns a completed submit response with `results[].url`, the script downloads the files immediately even without `--wait`. Most RH100 image tasks are asynchronous, so normal submit responses are `RUNNING` with `results: null`; use `--webhook-url` when you want no-poll automatic delivery.
+If RunningHub returns a completed submit response with `results[].url`, the script downloads the files immediately. Most RH100 image tasks are asynchronous, so normal submit responses are `QUEUED` or `RUNNING` with `results: null`; keep `--wait` unless the user explicitly requests submit-only behavior.
 
-Only add `--wait` for quick manual tests. `--wait` defaults to a 60-second maximum foreground wait and should not be used for batches or long generations.
+Use `--no-wait` for submit-only mode. Poll every 10 seconds by default with `--poll-seconds 10`. `--wait` defaults to a 120-second maximum foreground wait unless `--max-wait-seconds` is provided.
 
 ```powershell
 python C:\Users\ghost\.codex\skills\文生图\scripts\rh100_t2i.py `

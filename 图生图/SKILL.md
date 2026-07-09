@@ -30,10 +30,13 @@ python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i.py `
   --aspect-ratio "9:16" `
   --resolution "1k" `
   --instance-type "default" `
+  --wait `
+  --poll-seconds 10 `
+  --max-wait-seconds 120 `
   --out-dir ".\outputs"
 ```
 
-Only add `--wait` for quick manual tests. `--wait` defaults to a 60-second maximum foreground wait and should not be used for batches or long generations.
+Use `--wait` for one-off tasks that should download results in the foreground. Poll every 10 seconds by default with `--poll-seconds 10`. `--wait` defaults to a 120-second maximum foreground wait unless `--max-wait-seconds` is provided.
 
 For public URLs:
 
@@ -42,7 +45,10 @@ python C:\Users\ghost\.codex\skills\图生图\scripts\rh100_i2i.py `
   --image-url "https://example.com/input.png" `
   --prompt "将这张线稿转换为明代水墨武侠风格的精细彩图。" `
   --aspect-ratio "9:16" `
-  --resolution "1k"
+  --resolution "1k" `
+  --wait `
+  --poll-seconds 10 `
+  --max-wait-seconds 120
 ```
 
 The script does not contain a built-in API key. Set `RUNNINGHUB_API_KEY` before use, or pass `--api-key` for a one-off test run.

@@ -132,7 +132,7 @@ def main():
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--out-dir", default="outputs")
     parser.add_argument("--poll-seconds", type=int, default=10)
-    parser.add_argument("--max-wait-seconds", type=int, default=60)
+    parser.add_argument("--max-wait-seconds", type=int, default=120)
     parser.add_argument("--api-key", default="", help="Use this key for this run instead of environment variables")
     parser.add_argument("--wait", action="store_true", help="Poll briefly after submitting")
     parser.add_argument("--no-wait", action="store_true", help="Submit only; do not poll")
