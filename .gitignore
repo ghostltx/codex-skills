@@ -2,10 +2,6 @@
 !.gitignore
 !.gitattributes
 !README.md
-!RH-GPT-IMAGE-2-I2I/
-!RH-GPT-IMAGE-2-I2I/**
-!RH-GPT-IMAGE-2-T2I/
-!RH-GPT-IMAGE-2-T2I/**
 !amazon-plus-1.0/
 !amazon-plus-1.0/**
 !amazon-images-reviews/
