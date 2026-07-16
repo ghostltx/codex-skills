@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 import argparse
+from http.client import RemoteDisconnected
 import json
 import mimetypes
 import os
 import sys
-import time
 import uuid
+import webbrowser
 from pathlib import Path
 from urllib import request, error
 
 
 BASE_URL = "https://www.runninghub.cn/openapi/v2"
 SUBMIT_URL = f"{BASE_URL}/rhart-image-n-g31-flash/image-to-image"
-QUERY_URL = f"{BASE_URL}/query"
 UPLOAD_URL = f"{BASE_URL}/media/upload/binary"
+BILL_TASK_URL = "https://www.runninghub.cn/call-api/bill-task"
 HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
-DOWNLOAD_TIMEOUT_SECONDS = int(os.environ.get("RH100_DOWNLOAD_TIMEOUT_SECONDS", "120"))
 
 
 def api_key():
-    key = os.environ.get("RUNNINGHUB_API_KEY")
+    key = os.environ.get("RH100_API_KEY") or os.environ.get("RUNNINGHUB_API_KEY")
     if not key:
-        raise RuntimeError("RUNNINGHUB_API_KEY is required.")
+        raise RuntimeError("RH100_API_KEY or RUNNINGHUB_API_KEY is required.")
     return key
 
 
@@ -48,6 +48,8 @@ def read_json(req):
         raise RuntimeError(f"HTTP {exc.code}: {body}") from exc
     except error.URLError as exc:
         raise RuntimeError(f"Request failed: {exc}") from exc
+    except RemoteDisconnected as exc:
+        raise RuntimeError("Request failed: remote end closed connection without response") from exc
 
     try:
         return json.loads(raw)
@@ -60,7 +62,7 @@ def upload_file(path):
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
 
-    boundary = f"----rh100-{uuid.uuid4().hex}"
+    boundary = f"----rh100-i2i-{uuid.uuid4().hex}"
     mime = mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
     file_bytes = file_path.read_bytes()
 
@@ -114,33 +116,8 @@ def submit_task(image_urls, prompt, aspect_ratio, resolution, instance_type=None
     return json_post(SUBMIT_URL, payload)
 
 
-def query_task(task_id):
-    return json_post(QUERY_URL, {"taskId": task_id})
-
-
-def download(url, out_path):
-    req = request.Request(url, method="GET")
-    try:
-        with request.urlopen(req, timeout=DOWNLOAD_TIMEOUT_SECONDS) as resp:
-            content = resp.read()
-    except error.HTTPError as exc:
-        body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Download HTTP {exc.code}: {body}") from exc
-    except error.URLError as exc:
-        raise RuntimeError(f"Download failed: {exc}") from exc
-
-    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(out_path).write_bytes(content)
-
-
-def result_filename(result, index):
-    ext = result.get("outputType") or "bin"
-    node_id = result.get("nodeId") or index
-    return f"rh100_{int(time.time())}_node{node_id}_{index}.{ext}"
-
-
 def main():
-    parser = argparse.ArgumentParser(description="RH100 RunningHub image-to-image client")
+    parser = argparse.ArgumentParser(description="图生图 RunningHub image-to-image client")
     parser.add_argument("--image", action="append", default=[], help="Local image file to upload")
     parser.add_argument("--image-url", action="append", default=[], help="Public image URL")
     parser.add_argument("--prompt", required=True, help="Prompt text")
@@ -148,13 +125,13 @@ def main():
     parser.add_argument("--resolution", default="1k", choices=["1k", "2k", "4k"])
     parser.add_argument("--instance-type", default="default", choices=["default", "plus"], help="Enterprise shared instance type")
     parser.add_argument("--webhook-url", default="")
-    parser.add_argument("--out-dir", default="outputs")
-    parser.add_argument("--poll-seconds", type=int, default=10)
-    parser.add_argument("--max-wait-seconds", type=int, default=60)
-    parser.add_argument("--wait", action="store_true", help="Poll briefly after submitting")
-    parser.add_argument("--no-wait", action="store_true", help="Submit only; do not poll")
+    parser.add_argument("--api-key", default="", help="Use this key for this run instead of RUNNINGHUB_API_KEY")
     parser.add_argument("--print-json", action="store_true", help="Print full JSON responses")
+    parser.add_argument("--no-open", action="store_true", help="Do not open the bill-task page")
     args = parser.parse_args()
+
+    if args.api_key:
+        os.environ["RH100_API_KEY"] = args.api_key
 
     image_urls = list(args.image_url)
 
@@ -191,45 +168,14 @@ def main():
         error_message = submit.get("errorMessage") or "Submit response has no taskId."
         raise SystemExit(f"Submit failed: {error_code} {error_message}")
 
-    if args.no_wait or not args.wait:
-        return
-
-    start = time.time()
-    while True:
-        if time.time() - start > args.max_wait_seconds:
-            raise SystemExit(f"Timeout waiting for taskId={task_id}")
-
-        time.sleep(args.poll_seconds)
-        result = query_task(task_id)
-        status = result.get("status")
-        elapsed = int(time.time() - start)
-        print(f"[{elapsed}s] status={status}", flush=True)
-
-        if args.print_json:
-            print(json.dumps(result, ensure_ascii=False, indent=2))
-
-        if status == "SUCCESS":
-            outputs = result.get("results") or []
-            if not outputs:
-                raise SystemExit("Task succeeded but results is empty.")
-
-            for index, item in enumerate(outputs, start=1):
-                url = item.get("url")
-                text = item.get("text")
-                if text:
-                    print(text)
-                if url:
-                    out_path = Path(args.out_dir) / result_filename(item, index)
-                    download(url, out_path)
-                    print(f"Downloaded: {out_path}", flush=True)
-            return
-
-        if status == "FAILED":
-            print(json.dumps(result, ensure_ascii=False, indent=2), file=sys.stderr)
-            raise SystemExit(
-                f"Task failed: {result.get('errorCode')} {result.get('errorMessage')}"
-            )
+    if not args.no_open:
+        opened = webbrowser.open(BILL_TASK_URL, new=2)
+        print(f"Opened: {BILL_TASK_URL} (success={opened})", flush=True)
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(1)

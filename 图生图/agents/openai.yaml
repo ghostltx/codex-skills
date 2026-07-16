@@ -1,4 +1,0 @@
-interface:
-  display_name: "图生图"
-  short_description: "RunningHub RH100 企业图生图调用工具"
-  default_prompt: "用图生图："
