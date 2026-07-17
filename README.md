@@ -4,6 +4,16 @@
 
 ## 版本说明
 
+### v1.37
+
+`v1.37` 补充发布了 RH100 API Key 统一配置后的仓库版本记录，便于跨设备同步时快速确认当前生效规则：
+
+- 延续 `v1.36` 的约定：`rh100-t2i-i2i/` 只读取 `RUNNINGHUB_API_KEY`。
+- 明确旧变量 `RH100_API_KEY` 不再作为 RH100 图片生成 skill 的配置入口。
+- 保持 `--api-key` 单次运行入口可用，内部仍统一落到 `RUNNINGHUB_API_KEY`。
+
+简而言之，`v1.37` 是一次发布记录补充版，用于确认 RH100 skill 的 API Key 配置已经统一完成。
+
 ### v1.36
 
 `v1.36` 统一了 `rh100-t2i-i2i/` 的 RunningHub API Key 来源，避免同一个 skill 里存在多个环境变量别名：
