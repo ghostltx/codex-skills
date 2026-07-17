@@ -4,6 +4,17 @@
 
 ## 版本说明
 
+### v1.36
+
+`v1.36` 统一了 `rh100-t2i-i2i/` 的 RunningHub API Key 来源，避免同一个 skill 里存在多个环境变量别名：
+
+- 文生图、图生图、批量图生图和下载脚本不再读取 `RH100_API_KEY`。
+- 所有 RH100 调用统一直接读取 `RUNNINGHUB_API_KEY`。
+- `--api-key` 临时传参仍可用于单次运行，但内部也会写入 `RUNNINGHUB_API_KEY`。
+- `SKILL.md` 同步更新说明，避免后续继续配置旧的 `RH100_API_KEY`。
+
+简而言之，`v1.36` 让 RH100 图片生成 skill 只认一个 RunningHub 密钥环境变量：`RUNNINGHUB_API_KEY`。
+
 ### v1.35
 
 `v1.35` 清理了两套已经被统一 RH100 工作流替代的旧 GPT Image 2 skill：

@@ -125,7 +125,7 @@ def main():
     parser.add_argument("--no-open", action="store_true")
     args = parser.parse_args()
     if args.api_key:
-        os.environ["RH100_API_KEY"] = args.api_key
+        os.environ["RUNNINGHUB_API_KEY"] = args.api_key
     if args.prompt_file:
         args.prompt = Path(args.prompt_file).read_text(encoding="utf-8").strip()
     job_file = Path(args.job_file) if args.job_file else Path.cwd() / "rh100_jobs.json"
@@ -156,3 +156,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

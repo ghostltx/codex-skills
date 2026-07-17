@@ -20,9 +20,9 @@ HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
 
 
 def api_key():
-    key = os.environ.get("RH100_API_KEY") or os.environ.get("RUNNINGHUB_API_KEY")
+    key = os.environ.get("RUNNINGHUB_API_KEY")
     if not key:
-        raise RuntimeError("RH100_API_KEY or RUNNINGHUB_API_KEY is required.")
+        raise RuntimeError("RUNNINGHUB_API_KEY is required.")
     return key
 
 
@@ -113,7 +113,7 @@ def main():
     args = parser.parse_args()
 
     if args.api_key:
-        os.environ["RH100_API_KEY"] = args.api_key
+        os.environ["RUNNINGHUB_API_KEY"] = args.api_key
     args.prompt = (
         args.prompt
         if args.prompt is not None
@@ -167,3 +167,4 @@ if __name__ == "__main__":
     except (RuntimeError, FileNotFoundError) as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(1)
+

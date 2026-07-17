@@ -19,9 +19,9 @@ TERMINAL_FAILURES = {"FAILED", "FAILURE", "CANCELLED", "CANCELED"}
 
 
 def api_key():
-    key = os.environ.get("RH100_API_KEY") or os.environ.get("RUNNINGHUB_API_KEY")
+    key = os.environ.get("RUNNINGHUB_API_KEY")
     if not key:
-        raise RuntimeError("RH100_API_KEY or RUNNINGHUB_API_KEY is required.")
+        raise RuntimeError("RUNNINGHUB_API_KEY is required.")
     return key
 
 
@@ -173,7 +173,7 @@ def main():
     args = parser.parse_args()
 
     if args.api_key:
-        os.environ["RH100_API_KEY"] = args.api_key
+        os.environ["RUNNINGHUB_API_KEY"] = args.api_key
     if args.poll_seconds < 1:
         raise SystemExit("--poll-seconds must be at least 1.")
 
@@ -203,3 +203,4 @@ if __name__ == "__main__":
     except (RuntimeError, FileNotFoundError, json.JSONDecodeError) as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(1)
+

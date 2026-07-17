@@ -37,7 +37,7 @@ python C:\Users\ghost\.codex\skills\rh100-t2i-i2i\scripts\rh100_image_gen.py `
   --prompt "制作电商详情页主图"
 ```
 
-After a successful submission, open `https://www.runninghub.cn/call-api/bill-task`. The submit script must not query task status or download results. Use `--no-open` only for headless or test runs. Set `RH100_API_KEY` or `RUNNINGHUB_API_KEY`; `RH100_API_KEY` takes precedence. `--api-key` is for one-off runs only.
+After a successful submission, open `https://www.runninghub.cn/call-api/bill-task`. The submit script must not query task status or download results. Use `--no-open` only for headless or test runs. Set `RUNNINGHUB_API_KEY`. `--api-key` is for one-off runs only.
 
 ## Download confirmation
 
@@ -83,3 +83,4 @@ python C:\Users\ghost\.codex\skills\rh100-t2i-i2i\scripts\rh100_i2i_batch.py sub
 ```
 
 Read [references/api.md](references/api.md) for endpoint fields and known limits.
+
