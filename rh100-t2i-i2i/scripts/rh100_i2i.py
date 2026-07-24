@@ -12,7 +12,7 @@ from urllib import request, error
 
 
 BASE_URL = "https://www.runninghub.cn/openapi/v2"
-SUBMIT_URL = f"{BASE_URL}/rhart-image-n-g31-flash/image-to-image"
+SUBMIT_URL = f"{BASE_URL}/rhart-image-g-2/image-to-image"
 UPLOAD_URL = f"{BASE_URL}/media/upload/binary"
 BILL_TASK_URL = "https://www.runninghub.cn/call-api/bill-task"
 HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
@@ -121,13 +121,14 @@ def main():
     parser.add_argument("--image", action="append", default=[], help="Local image file to upload")
     parser.add_argument("--image-url", action="append", default=[], help="Public image URL")
     parser.add_argument("--prompt", required=True, help="Prompt text")
-    parser.add_argument("--aspect-ratio", default="9:16")
+    parser.add_argument("--aspect-ratio", default="16:9")
     parser.add_argument("--resolution", default="1k", choices=["1k", "2k", "4k"])
     parser.add_argument("--instance-type", default="default", choices=["default", "plus"], help="Enterprise shared instance type")
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="", help="Use this key for this run instead of RUNNINGHUB_API_KEY")
     parser.add_argument("--print-json", action="store_true", help="Print full JSON responses")
-    parser.add_argument("--no-open", action="store_true", help="Do not open the bill-task page")
+    parser.add_argument("--open", action="store_true", help="Open the bill-task page (opt-in)")
+    parser.add_argument("--no-open", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     if args.api_key:
@@ -168,9 +169,9 @@ def main():
         error_message = submit.get("errorMessage") or "Submit response has no taskId."
         raise SystemExit(f"Submit failed: {error_code} {error_message}")
 
-    if not args.no_open:
-        opened = webbrowser.open(BILL_TASK_URL, new=2)
-        print(f"Opened: {BILL_TASK_URL} (success={opened})", flush=True)
+    print(f"Task page: {BILL_TASK_URL}", flush=True)
+    if args.open:
+        webbrowser.open(BILL_TASK_URL, new=2)
 
 
 if __name__ == "__main__":

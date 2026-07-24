@@ -167,6 +167,11 @@ def main():
         default=str(Path.home() / "Desktop"),
         help="Parent directory; the first taskId is used as the child folder name",
     )
+    parser.add_argument(
+        "--output-dir",
+        default="",
+        help="Exact output directory; overrides --output-root/<first-taskId>",
+    )
     parser.add_argument("--poll-seconds", type=int, default=10)
     parser.add_argument("--max-wait-seconds", type=int, default=1800)
     parser.add_argument("--api-key", default="")
@@ -181,7 +186,11 @@ def main():
     if not task_ids:
         raise SystemExit("Provide at least one --task-id or a --job-file containing task IDs.")
 
-    out_dir = Path(args.output_root).expanduser() / safe_name(task_ids[0])
+    out_dir = (
+        Path(args.output_dir).expanduser()
+        if args.output_dir
+        else Path(args.output_root).expanduser() / safe_name(task_ids[0])
+    )
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"Output folder: {out_dir}", flush=True)
     downloaded, failures = poll_and_download(

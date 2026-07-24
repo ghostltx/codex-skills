@@ -7,8 +7,8 @@ import argparse
 import concurrent.futures
 import json
 import os
-import threading
 import webbrowser
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -122,7 +122,8 @@ def main():
     parser.add_argument("--resolution", default="2k", choices=["1k", "2k", "4k"])
     parser.add_argument("--instance-type", default="default", choices=["default", "plus", "none"])
     parser.add_argument("--api-key", default="")
-    parser.add_argument("--no-open", action="store_true")
+    parser.add_argument("--open", action="store_true", help="Open the bill-task page (opt-in)")
+    parser.add_argument("--no-open", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.api_key:
         os.environ["RUNNINGHUB_API_KEY"] = args.api_key
@@ -149,9 +150,9 @@ def main():
     task_ids = [job.get("taskId") for job in data.get("jobs", []) if job.get("taskId")]
     if task_ids:
         print(f"First taskId: {task_ids[0]}")
-    if not args.no_open:
-        opened = webbrowser.open(BILL_TASK_URL, new=2)
-        print(f"Opened: {BILL_TASK_URL} (success={opened})")
+    print(f"Task page: {BILL_TASK_URL}")
+    if args.open:
+        webbrowser.open(BILL_TASK_URL, new=2)
 
 
 if __name__ == "__main__":

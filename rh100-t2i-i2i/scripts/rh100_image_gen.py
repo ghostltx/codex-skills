@@ -12,8 +12,8 @@ from urllib import error, request
 
 
 BASE_URL = "https://www.runninghub.cn/openapi/v2"
-T2I_URL = f"{BASE_URL}/rhart-image-n-g31-flash/text-to-image"
-I2I_URL = f"{BASE_URL}/rhart-image-n-g31-flash/image-to-image"
+T2I_URL = f"{BASE_URL}/rhart-image-g-2/text-to-image"
+I2I_URL = f"{BASE_URL}/rhart-image-g-2/image-to-image"
 CREATE_TASK_URL = "https://www.runninghub.cn/call-api/bill-task"
 UPLOAD_URL = f"{BASE_URL}/media/upload/binary"
 HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
@@ -89,27 +89,27 @@ def upload_file(path):
     return url
 
 
-def open_bill_task_page():
-    opened = webbrowser.open(CREATE_TASK_URL, new=2)
-    print(f"Opened: {CREATE_TASK_URL} (success={opened})", flush=True)
+def print_task_page_link():
+    print(f"Task page: {CREATE_TASK_URL}", flush=True)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="RH100 fast submit client; auto-routes T2I/I2I and opens the bill-task page"
+        description="RunningHub G-2 fast submit client; auto-routes text-to-image or image-to-image"
     )
     prompt_group = parser.add_mutually_exclusive_group(required=True)
     prompt_group.add_argument("--prompt")
     prompt_group.add_argument("--prompt-file")
     parser.add_argument("--image", action="append", default=[], help="Local image; selects image-to-image")
     parser.add_argument("--image-url", action="append", default=[], help="Image URL; selects image-to-image")
-    parser.add_argument("--aspect-ratio", default="1:1")
-    parser.add_argument("--resolution", default="2k", choices=["1k", "2k", "4k"])
+    parser.add_argument("--aspect-ratio", default="16:9")
+    parser.add_argument("--resolution", default="1k", choices=["1k", "2k", "4k"])
     parser.add_argument("--instance-type", default="default", choices=["default", "plus", "none"])
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="", help="One-off key; prefer environment variables")
     parser.add_argument("--print-json", action="store_true")
-    parser.add_argument("--no-open", action="store_true", help="Do not open the bill-task page")
+    parser.add_argument("--open", action="store_true", help="Open the bill-task page (opt-in)")
+    parser.add_argument("--no-open", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     if args.api_key:
@@ -157,8 +157,9 @@ def main():
         )
     print(f"Submitted mode={mode} taskId={task_id} status={submit.get('status')}", flush=True)
     print(f"First taskId: {task_id}", flush=True)
-    if not args.no_open:
-        open_bill_task_page()
+    print_task_page_link()
+    if args.open:
+        webbrowser.open(CREATE_TASK_URL, new=2)
 
 
 if __name__ == "__main__":
