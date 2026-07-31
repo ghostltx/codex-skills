@@ -22,6 +22,10 @@ amazon-images-reviews/**/*.pyc
 !rh100-t2i-i2i/**
 rh100-t2i-i2i/**/__pycache__/
 rh100-t2i-i2i/**/*.pyc
+!rh100-t2i-i2i_US/
+!rh100-t2i-i2i_US/**
+rh100-t2i-i2i_US/**/__pycache__/
+rh100-t2i-i2i_US/**/*.pyc
 !baokuan-tupian/
 !baokuan-tupian/**
 !三板方桌/

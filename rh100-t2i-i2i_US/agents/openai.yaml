@@ -1,0 +1,3 @@
+display_name: RH100-T2I/I2I_US
+icon: 🖼️
+default_prompt: 使用 RunningHub US GPT-Image-2 文生图/图生图生成图片；读取 RUNNINGHUB_API_KEY_US，提交后询问我是否下载，确认后将全部结果保存到桌面 taskId 文件夹。
