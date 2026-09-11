@@ -2,14 +2,15 @@
 
 ## Endpoints
 
-- Text-to-image: `POST https://www.runninghub.ai/openapi/v2/rhart-image-g-2/text-to-image`
-- Image-to-image: `POST https://www.runninghub.ai/openapi/v2/rhart-image-g-2/image-to-image`
+- Text-to-image (Sunburst): `POST https://www.runninghub.ai/openapi/v2/rhart-image-g-2.5-official-token/sunburst/text-to-image`
+- High-precision image edit (Sunburst): `POST https://www.runninghub.ai/openapi/v2/rhart-image-g-2.5-official-token/sunburst/edit`
+- High-speed image edit (Flare): `POST https://www.runninghub.ai/openapi/v2/rhart-image-g-2.5-official-token/flare/edit`
 - Query task: `POST https://www.runninghub.ai/openapi/v2/query`
 - Upload: `POST https://www.runninghub.ai/openapi/v2/media/upload/binary`
 - Task page: `https://www.runninghub.ai/call-api/bill-task`
 
-Text-to-image accepts `prompt`, `aspectRatio`, `resolution`, `instanceType`, and optional `webhookUrl`.
-Image-to-image accepts the same fields and additionally requires `imageUrls` with at most 10 images.
+All three endpoints accept `prompt`, `aspectRatio`, `resolution`, `background`, `quality`, `outputFormat`, and optional `webhookUrl`.
+Both edit endpoints additionally require `imageUrls` with 1-16 `JPG`, `JPEG`, `PNG`, or `WEBP` images. `background` is `auto`, `transparent`, or `opaque`; `quality` is `auto`, `low`, `medium`, `high`, `xhigh`, or `max`; `outputFormat` is `jpeg`, `png`, or `webp`.
 
 Authentication uses `Authorization: Bearer <RUNNINGHUB_API_KEY_US>`.
 
@@ -17,5 +18,6 @@ The fast-submit workflow does not query task status or download results. Open th
 
 Configured model route documents:
 
-- Text-to-image: `https://www.runninghub.ai/call-api/api-detail/2046514150500524033`
-- Image-to-image: `https://www.runninghub.ai/call-api/api-detail/2046503667076751361`
+- Text-to-image / Sunburst: `https://www.runninghub.ai/zh-cn/call-api/api-detail/2133100000000800375`
+- High-precision image edit / Sunburst: `https://www.runninghub.ai/zh-cn/call-api/api-detail/2133100000000800376`
+- High-speed image edit / Flare: `https://www.runninghub.ai/zh-cn/call-api/api-detail/2133100000000800378`

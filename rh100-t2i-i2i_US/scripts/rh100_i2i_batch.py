@@ -76,7 +76,11 @@ def submit_one(job, args):
         prompt=args.prompt,
         aspect_ratio=args.aspect_ratio,
         resolution=args.resolution,
-        instance_type=None if args.instance_type == "none" else args.instance_type,
+        background=args.background,
+        quality=args.quality,
+        output_format=args.output_format,
+        edit_mode=args.edit_mode,
+        webhook_url=args.webhook_url or None,
     )
     task_id = result.get("taskId")
     job["taskId"] = task_id
@@ -113,6 +117,7 @@ def main():
     parser.add_argument("command", choices=["submit", "status"])
     parser.add_argument("--image", action="append", default=[])
     parser.add_argument("--reference", action="append", default=[])
+    parser.add_argument("--edit-mode", default="precision", choices=["precision", "fast"])
     parser.add_argument("--prompt", default="")
     parser.add_argument("--prompt-file", default="")
     parser.add_argument("--job-file", default="")
@@ -120,7 +125,10 @@ def main():
     parser.add_argument("--concurrency", type=int, default=14)
     parser.add_argument("--aspect-ratio", default="1:1")
     parser.add_argument("--resolution", default="2k", choices=["1k", "2k", "4k"])
-    parser.add_argument("--instance-type", default="default", choices=["default", "plus", "none"])
+    parser.add_argument("--background", default="auto", choices=["auto", "transparent", "opaque"])
+    parser.add_argument("--quality", default="high", choices=["auto", "low", "medium", "high", "xhigh", "max"])
+    parser.add_argument("--output-format", default="png", choices=["jpeg", "png", "webp"])
+    parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="")
     parser.add_argument("--no-open", action="store_true")
     args = parser.parse_args()
@@ -138,6 +146,8 @@ def main():
         raise SystemExit("--image is required for submit")
     if not args.prompt:
         raise SystemExit("--prompt or --prompt-file is required for submit")
+    if len(args.reference) > 15:
+        raise SystemExit("A batch edit supports one target plus at most 15 reference images.")
 
     local_paths = [path for path in args.image + args.reference if Path(path).exists()]
     ensure_uploads(data, local_paths, args.concurrency)
@@ -156,4 +166,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

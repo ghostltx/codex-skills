@@ -12,7 +12,10 @@ from urllib import request, error
 
 
 BASE_URL = "https://www.runninghub.ai/openapi/v2"
-SUBMIT_URL = f"{BASE_URL}/rhart-image-g-2/image-to-image"
+EDIT_URLS = {
+    "precision": f"{BASE_URL}/rhart-image-g-2.5-official-token/sunburst/edit",
+    "fast": f"{BASE_URL}/rhart-image-g-2.5-official-token/flare/edit",
+}
 UPLOAD_URL = f"{BASE_URL}/media/upload/binary"
 BILL_TASK_URL = "https://www.runninghub.ai/call-api/bill-task"
 HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
@@ -102,28 +105,46 @@ def upload_file(path):
     return url, result
 
 
-def submit_task(image_urls, prompt, aspect_ratio, resolution, instance_type=None, webhook_url=None):
+def submit_task(
+    image_urls,
+    prompt,
+    aspect_ratio,
+    resolution,
+    background="auto",
+    quality="high",
+    output_format="png",
+    edit_mode="precision",
+    webhook_url=None,
+):
+    if not 1 <= len(image_urls) <= 16:
+        raise ValueError("imageUrls supports 1 to 16 images.")
+    if edit_mode not in EDIT_URLS:
+        raise ValueError("edit_mode must be precision or fast.")
     payload = {
         "imageUrls": image_urls,
         "prompt": prompt,
         "aspectRatio": aspect_ratio,
         "resolution": resolution,
+        "background": background,
+        "quality": quality,
+        "outputFormat": output_format,
     }
-    if instance_type:
-        payload["instanceType"] = instance_type
     if webhook_url:
         payload["webhookUrl"] = webhook_url
-    return json_post(SUBMIT_URL, payload)
+    return json_post(EDIT_URLS[edit_mode], payload)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="图生图 RunningHub image-to-image client")
+    parser = argparse.ArgumentParser(description="GPT-Image-2.5 Sunburst/Flare 图像编辑 RunningHub client")
     parser.add_argument("--image", action="append", default=[], help="Local image file to upload")
     parser.add_argument("--image-url", action="append", default=[], help="Public image URL")
+    parser.add_argument("--edit-mode", default="precision", choices=["precision", "fast"], help="precision=Sunburst; fast=Flare")
     parser.add_argument("--prompt", required=True, help="Prompt text")
     parser.add_argument("--aspect-ratio", default="9:16")
     parser.add_argument("--resolution", default="1k", choices=["1k", "2k", "4k"])
-    parser.add_argument("--instance-type", default="default", choices=["default", "plus"], help="Enterprise shared instance type")
+    parser.add_argument("--background", default="auto", choices=["auto", "transparent", "opaque"])
+    parser.add_argument("--quality", default="high", choices=["auto", "low", "medium", "high", "xhigh", "max"])
+    parser.add_argument("--output-format", default="png", choices=["jpeg", "png", "webp"])
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="", help="Use this key for this run instead of RUNNINGHUB_API_KEY_US")
     parser.add_argument("--print-json", action="store_true", help="Print full JSON responses")
@@ -145,15 +166,15 @@ def main():
     if not image_urls:
         raise SystemExit("At least one --image or --image-url is required.")
 
-    if len(image_urls) > 10:
-        raise SystemExit("imageUrls supports at most 10 images.")
-
     submit = submit_task(
         image_urls=image_urls,
         prompt=args.prompt,
         aspect_ratio=args.aspect_ratio,
         resolution=args.resolution,
-        instance_type=args.instance_type,
+        background=args.background,
+        quality=args.quality,
+        output_format=args.output_format,
+        edit_mode=args.edit_mode,
         webhook_url=args.webhook_url,
     )
     if args.print_json:
@@ -176,7 +197,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except RuntimeError as exc:
+    except (RuntimeError, ValueError) as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(1)
-

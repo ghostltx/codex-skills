@@ -12,8 +12,11 @@ from urllib import error, request
 
 
 BASE_URL = "https://www.runninghub.ai/openapi/v2"
-T2I_URL = f"{BASE_URL}/rhart-image-g-2/text-to-image"
-I2I_URL = f"{BASE_URL}/rhart-image-g-2/image-to-image"
+T2I_URL = f"{BASE_URL}/rhart-image-g-2.5-official-token/sunburst/text-to-image"
+EDIT_URLS = {
+    "precision": f"{BASE_URL}/rhart-image-g-2.5-official-token/sunburst/edit",
+    "fast": f"{BASE_URL}/rhart-image-g-2.5-official-token/flare/edit",
+}
 CREATE_TASK_URL = "https://www.runninghub.ai/call-api/bill-task"
 UPLOAD_URL = f"{BASE_URL}/media/upload/binary"
 HTTP_TIMEOUT_SECONDS = int(os.environ.get("RH100_HTTP_TIMEOUT_SECONDS", "60"))
@@ -96,16 +99,24 @@ def open_bill_task_page():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="RH100 US fast submit client; auto-routes GPT-Image-2 text-to-image/image-to-image and opens the bill-task page"
+        description="RH100 US submit client for GPT-Image-2.5 Sunburst text-to-image and Sunburst/Flare image editing"
     )
     prompt_group = parser.add_mutually_exclusive_group(required=True)
     prompt_group.add_argument("--prompt")
     prompt_group.add_argument("--prompt-file")
     parser.add_argument("--image", action="append", default=[], help="Local image; selects image-to-image")
     parser.add_argument("--image-url", action="append", default=[], help="Image URL; selects image-to-image")
+    parser.add_argument(
+        "--edit-mode",
+        default="precision",
+        choices=["precision", "fast"],
+        help="Image editing mode: precision=Sunburst, fast=Flare",
+    )
     parser.add_argument("--aspect-ratio", default="1:1")
     parser.add_argument("--resolution", default="2k", choices=["1k", "2k", "4k"])
-    parser.add_argument("--instance-type", default="default", choices=["default", "plus", "none"])
+    parser.add_argument("--background", default="auto", choices=["auto", "transparent", "opaque"])
+    parser.add_argument("--quality", default="high", choices=["auto", "low", "medium", "high", "xhigh", "max"])
+    parser.add_argument("--output-format", default="png", choices=["jpeg", "png", "webp"])
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="", help="One-off key; prefer environment variables")
     parser.add_argument("--print-json", action="store_true")
@@ -126,23 +137,24 @@ def main():
     for image_path in args.image:
         print(f"Uploading: {image_path}", flush=True)
         image_urls.append(upload_file(image_path))
-    if len(image_urls) > 10:
-        raise SystemExit("imageUrls supports at most 10 images.")
+    if len(image_urls) > 16:
+        raise SystemExit("imageUrls supports at most 16 images.")
 
     payload = {
         "prompt": args.prompt,
         "aspectRatio": args.aspect_ratio,
         "resolution": args.resolution,
+        "background": args.background,
+        "quality": args.quality,
+        "outputFormat": args.output_format,
     }
     if image_urls:
         payload["imageUrls"] = image_urls
-        endpoint = I2I_URL
-        mode = "tushengtu_US"
+        endpoint = EDIT_URLS[args.edit_mode]
+        mode = f"tushengtu_US_gpt_image_2_5_{args.edit_mode}"
     else:
         endpoint = T2I_URL
-        mode = "wenshengtu_US"
-    if args.instance_type != "none":
-        payload["instanceType"] = args.instance_type
+        mode = "wenshengtu_US_gpt_image_2_5_sunburst"
     if args.webhook_url:
         payload["webhookUrl"] = args.webhook_url
 
@@ -167,6 +179,4 @@ if __name__ == "__main__":
     except (RuntimeError, FileNotFoundError) as exc:
         print(str(exc), file=sys.stderr)
         raise SystemExit(1)
-
-
 
