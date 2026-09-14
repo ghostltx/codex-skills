@@ -1,0 +1,7 @@
+interface:
+  display_name: "ComfyUI 场景拆分"
+  short_description: "提取白底人物并清理桌椅场景，供 ComfyUI 合成"
+  default_prompt: "使用 $comfyui-scene-split 拆分这张图，输出 ComfyUI 提示词、白底人物和清理背景。"
+
+policy:
+  allow_implicit_invocation: true

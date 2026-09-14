@@ -34,3 +34,5 @@ rh100-t2i-i2i_US/**/*.pyc
 !故事板/**
 !XeliasAI PPT/
 !XeliasAI PPT/**
+!comfyui-scene-split/
+!comfyui-scene-split/**
