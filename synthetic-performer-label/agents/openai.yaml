@@ -1,0 +1,4 @@
+interface:
+  display_name: "Synthetic Performer 标记"
+  short_description: "为图片写入 AI 生成人物 XMP 标记"
+  default_prompt: "为我上传的图片添加 contains-synthetic-performer，并保存为原文件名+已标记。"

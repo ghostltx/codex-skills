@@ -1,0 +1,4 @@
+interface:
+  display_name: "RH100 Banana PRO US"
+  short_description: "使用 RunningHub US Banana PRO 文生图与构图图生图"
+  default_prompt: "使用 RH100 Banana PRO US 生成图片：无参考图时文生图，有参考图时按构图要求图生图。"

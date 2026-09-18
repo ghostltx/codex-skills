@@ -1,0 +1,3 @@
+[submodule "detail-flow"]
+	path = detail-flow
+	url = https://github.com/AJbeckliy/detail-flow.git

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create PSD"
+  short_description: "RH100-I2I 4K 快速分层 PSD 重建"
+  default_prompt: "用 Create PSD 快速重建分层 PSD："

@@ -1,0 +1,4 @@
+interface:
+  display_name: "RH100 Banana2 US"
+  short_description: "使用 RunningHub US Nano Banana 2 API 进行文生图与图生图"
+  default_prompt: "使用 RH100 Nano Banana 2 US 生成图片：无参考图时文生图，有参考图时图生图。"
