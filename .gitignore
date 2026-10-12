@@ -72,3 +72,5 @@ rh100-t2i-i2i_US/**/*.pyc
 **/build/
 **/build-large-icon/
 quarkclouddrive/codex/
+!5s-fantui/
+!5s-fantui/**

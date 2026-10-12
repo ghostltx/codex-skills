@@ -1,0 +1,4 @@
+interface:
+  display_name: "5S反推"
+  short_description: "按5S方法拆解图片，输出中文分析与可复制的英文生成提示词代码块"
+  default_prompt: "使用 $5s-fantui 按5S方法反推这张图片，中文分析，并用代码块输出完整英文生成提示词。"
