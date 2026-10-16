@@ -1,0 +1,3 @@
+interface:
+  display_name: "修改时间"
+  short_description: "用 RH100 US 批量修改截图时间并贴回原图"
