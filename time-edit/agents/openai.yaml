@@ -1,0 +1,3 @@
+interface:
+  display_name: "Time-edit"
+  short_description: "用 ImageGen 批量修改截图时间并核验贴回结果"

@@ -1,5 +1,5 @@
 ---
-name: screenshot-time-edit
+name: time-edit
 description: Edit status-bar times in screenshots using ImageGen for the time lettering, then locally composite and verify each result. Use when filenames encode the replacement time.
 ---
 

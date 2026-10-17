@@ -4,6 +4,9 @@
 
 ## 版本说明
 
+### v1.46
+
+将截图时间修改技能统一更名为 `time-edit/` (显示名称：`Time-edit`)，并同步更新 Skill frontmatter、Codex 展示名称和仓库白名单。更新入口说明，使其反映当前默认使用 ImageGen 的工作流。
 ### v1.45
 
 更新 `screenshot-time-edit/` 截图时间修改技能，统一使用 ImageGen 生成新时间字形，并强化本地合成后的背景验收：

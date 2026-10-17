@@ -74,5 +74,5 @@ rh100-t2i-i2i_US/**/*.pyc
 quarkclouddrive/codex/
 !5s-fantui/
 !5s-fantui/**
-!screenshot-time-edit/
-!screenshot-time-edit/**
+!time-edit/
+!time-edit/**
