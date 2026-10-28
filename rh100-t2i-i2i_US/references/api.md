@@ -14,7 +14,7 @@ Both edit endpoints additionally require `imageUrls` with 1-16 `JPG`, `JPEG`, `P
 
 Authentication uses `Authorization: Bearer <RUNNINGHUB_API_KEY_US>`.
 
-The fast-submit workflow does not query task status or download results. Open the task page after submission, then ask the user whether to download. After confirmation, query each `taskId` and download all `results[].url` values.
+The fast-submit workflow prints the task page link but does not open it, query task status, or download results. Ask the user whether to download. After confirmation, query each `taskId` and download all `results[].url` values. Open the task page only when the user explicitly requests it, using `--open`.
 
 Configured model route documents:
 

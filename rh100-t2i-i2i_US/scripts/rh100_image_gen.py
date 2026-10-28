@@ -97,6 +97,12 @@ def open_bill_task_page():
     print(f"Opened: {CREATE_TASK_URL} (success={opened})", flush=True)
 
 
+def report_bill_task_page(open_page=False):
+    print(f"Task page: {CREATE_TASK_URL}", flush=True)
+    if open_page:
+        open_bill_task_page()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="RH100 US submit client for GPT-Image-2.5 Sunburst text-to-image and Sunburst/Flare image editing"
@@ -120,7 +126,8 @@ def main():
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="", help="One-off key; prefer environment variables")
     parser.add_argument("--print-json", action="store_true")
-    parser.add_argument("--no-open", action="store_true", help="Do not open the bill-task page")
+    parser.add_argument("--open", action="store_true", help="Open the bill-task page in a browser")
+    parser.add_argument("--no-open", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     if args.api_key:
@@ -169,8 +176,7 @@ def main():
         )
     print(f"Submitted mode={mode} taskId={task_id} status={submit.get('status')}", flush=True)
     print(f"First taskId: {task_id}", flush=True)
-    if not args.no_open:
-        open_bill_task_page()
+    report_bill_task_page(open_page=args.open and not args.no_open)
 
 
 if __name__ == "__main__":

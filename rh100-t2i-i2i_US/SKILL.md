@@ -5,7 +5,7 @@ description: RunningHub US GPT-Image-2.5 text-to-image plus Sunburst precision e
 
 # RH100-T2I/I2I_US
 
-Use this US variant for RunningHub US GPT-Image-2.5 through the official Token routes. It supports three modes and submits once, prints the first `taskId`, opens the RunningHub US task page, and exits immediately.
+Use this US variant for RunningHub US GPT-Image-2.5 through the official Token routes. It supports three modes and submits once, prints the first `taskId` and RunningHub task page link, and exits immediately. It does not open a browser unless the user explicitly requests it.
 
 Configured endpoints:
 
@@ -53,7 +53,7 @@ python C:\Users\ghost\.codex\skills\rh100-t2i-i2i_US\scripts\rh100_image_gen.py 
   --output-format "png"
 ```
 
-After a successful submission, open `https://www.runninghub.ai/call-api/bill-task`. The submit script must not query task status or download results. Use `--no-open` only for headless or test runs. Set `RUNNINGHUB_API_KEY_US`. `--api-key` is for one-off runs only.
+After a successful submission, print `https://www.runninghub.ai/call-api/bill-task` for the user. Do not open a browser automatically. Use `--open` only when the user explicitly asks to open the task page; `--no-open` remains accepted for compatibility. The submit script must not query task status or download results. Set `RUNNINGHUB_API_KEY_US`. `--api-key` is for one-off runs only.
 
 ## Download confirmation
 

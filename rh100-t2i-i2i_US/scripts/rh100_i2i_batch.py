@@ -130,7 +130,8 @@ def main():
     parser.add_argument("--output-format", default="png", choices=["jpeg", "png", "webp"])
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="")
-    parser.add_argument("--no-open", action="store_true")
+    parser.add_argument("--open", action="store_true", help="Open the bill-task page in a browser")
+    parser.add_argument("--no-open", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.api_key:
         os.environ["RUNNINGHUB_API_KEY_US"] = args.api_key
@@ -159,7 +160,9 @@ def main():
     task_ids = [job.get("taskId") for job in data.get("jobs", []) if job.get("taskId")]
     if task_ids:
         print(f"First taskId: {task_ids[0]}")
-    if not args.no_open:
+    if task_ids:
+        print(f"Task page: {BILL_TASK_URL}")
+    if task_ids and args.open and not args.no_open:
         opened = webbrowser.open(BILL_TASK_URL, new=2)
         print(f"Opened: {BILL_TASK_URL} (success={opened})")
 

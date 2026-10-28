@@ -148,7 +148,8 @@ def main():
     parser.add_argument("--webhook-url", default="")
     parser.add_argument("--api-key", default="", help="Use this key for this run instead of RUNNINGHUB_API_KEY_US")
     parser.add_argument("--print-json", action="store_true", help="Print full JSON responses")
-    parser.add_argument("--no-open", action="store_true", help="Do not open the bill-task page")
+    parser.add_argument("--open", action="store_true", help="Open the bill-task page in a browser")
+    parser.add_argument("--no-open", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
 
     if args.api_key:
@@ -189,7 +190,8 @@ def main():
         error_message = submit.get("errorMessage") or "Submit response has no taskId."
         raise SystemExit(f"Submit failed: {error_code} {error_message}")
 
-    if not args.no_open:
+    print(f"Task page: {BILL_TASK_URL}", flush=True)
+    if args.open and not args.no_open:
         opened = webbrowser.open(BILL_TASK_URL, new=2)
         print(f"Opened: {BILL_TASK_URL} (success={opened})", flush=True)
 
