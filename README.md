@@ -6,11 +6,11 @@
 
 ### v1.48
 
-移除 `hive-ai-content-check/` 技能，并新增 `sightengine-ai-check/` 图片 AI 检测技能：
+移除 `hive-ai-content-check/` 技能，新增 `sightengine-ai-check/` 图片 AI 检测技能：
 
 - 下线 Hive 检测相关目录与白名单规则。
 - 新增 `sightengine-ai-check/`，基于 Sightengine API 检测图片是否为 AI 生成。
-- 结果以简短直观格式输出（进度条、带颜色高亮标签、状态 emoji），避免长篇大论。
+- 结果以纯 Markdown 与彩色圆点/状态 Emoji 配合字符进度条输出，杜绝原生 HTML 标签。
 - 凭据由环境变量或 `notepad.md` 动态获取，保障 secret 安全。
 
 ### v1.47
