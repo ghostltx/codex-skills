@@ -16,8 +16,6 @@ amazon-images-reviews/**/*.pyc
 !fantui/**
 !amazon-recolor/
 !amazon-recolor/**
-!hive-ai-content-check/
-!hive-ai-content-check/**
 !rh100-t2i-i2i/
 !rh100-t2i-i2i/**
 rh100-t2i-i2i/**/__pycache__/
@@ -76,3 +74,5 @@ quarkclouddrive/codex/
 !5s-fantui/**
 !time-edit/
 !time-edit/**
+!sightengine-ai-check/
+!sightengine-ai-check/**

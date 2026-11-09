@@ -4,6 +4,15 @@
 
 ## 版本说明
 
+### v1.48
+
+移除 `hive-ai-content-check/` 技能，并新增 `sightengine-ai-check/` 图片 AI 检测技能：
+
+- 下线 Hive 检测相关目录与白名单规则。
+- 新增 `sightengine-ai-check/`，基于 Sightengine API 检测图片是否为 AI 生成。
+- 结果以简短直观格式输出（进度条、带颜色高亮标签、状态 emoji），避免长篇大论。
+- 凭据由环境变量或 `notepad.md` 动态获取，保障 secret 安全。
+
 ### v1.47
 
 更新 `rh100-t2i-i2i_US/` 的提交后行为：文生图、图生图和批量提交默认打印 RunningHub 任务页链接，不再自动打开浏览器；用户明确要求时可加 `--open` 手动打开。同步修订技能说明和 API 参考，并保留旧 `--no-open` 参数兼容。
