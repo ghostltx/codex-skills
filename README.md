@@ -4,6 +4,10 @@
 
 ## 版本说明
 
+### v1.50
+
+移除不再需要的 `fantui/` 技能，保留 `5s-fantui/` 作为图片提示词反推入口。
+
 ### v1.48
 
 移除 `hive-ai-content-check/` 技能，新增 `sightengine-ai-check/` 图片 AI 检测技能：
