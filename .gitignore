@@ -76,3 +76,7 @@ quarkclouddrive/codex/
 !time-edit/**
 !sightengine-ai-check/
 !sightengine-ai-check/**
+!openlux/
+!openlux/**
+openlux/**/__pycache__/
+openlux/**/*.pyc
