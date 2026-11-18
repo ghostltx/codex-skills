@@ -5,7 +5,7 @@ import argparse, base64, json, math, mimetypes, os, re, sys, time, uuid, urllib.
 from pathlib import Path
 
 BASE = "https://api.openlux.ai/v1"
-MODEL = "gpt-image-2.5-sunburst-c"
+MODEL = "gpt-image-2.6-sunburst-c"
 BUDGET = 2880 * 2880  # ~8.29 MP
 MAX_SIDE = 3840
 FORMATS = {"png", "jpeg", "webp"}
@@ -136,3 +136,4 @@ def main():
     if not saved: sys.exit("No image in response: " + json.dumps(res)[:800])
 
 if __name__ == "__main__": main()
+
